@@ -28,7 +28,7 @@ a { color: inherit; text-decoration: none; }
 .eyebrow { color: #e85d2a; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .hero h1 { color: #17212b; font-family: Georgia, serif; font-size: clamp(2.5rem, 6vw, 4.8rem); line-height: 0.98; margin: 0.8rem 0 1rem; }
 .hero p { color: #52606a; line-height: 1.6; max-width: 420px; }
-.primary-button { background: #17212b; border: 0; color: #fff; font-weight: 700; margin-top: 1.6rem; padding: 0.9rem 1.4rem; }
+.primary-button { background: #17212b; border: 0; color: #fff; font-weight: 700; margin-top: 1rem; padding: 0.9rem 1.4rem; }
 .hero-device { align-items: center; display: flex; justify-content: center; min-height: 270px; position: relative; z-index: 1; }
 .phone { background: #17212b; border: 7px solid #fff; border-radius: 30px; box-shadow: 12px 18px 0 #e85d2a; height: 240px; padding: 18px 9px; transform: rotate(12deg); width: 125px; }
 .phone-screen { background: linear-gradient(145deg, #668b7b, #d5e8d0 48%, #f4b942); border-radius: 17px; height: 100%; overflow: hidden; }
