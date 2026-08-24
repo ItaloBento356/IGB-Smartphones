@@ -34,7 +34,7 @@ const clientes: Cliente[] = [
     nome: 'Mariana Oliveira',
     email: 'mariana.oliveira@gmail.com',
     telefone: '(31) 97654-2109',
-    status: 'Inativo',
+    status: 'Ativo',
     cidade: 'Belo Horizonte - MG',
     pedidos: 0,
   },
