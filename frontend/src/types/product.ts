@@ -4,5 +4,6 @@ export type Product = {
   brand: string
   price: number
   color: string
+  image: string
   badge?: string
 }
