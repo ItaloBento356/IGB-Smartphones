@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/ProductCard'
 import { products } from '../data/products'
+import { Header } from '../components/Header'
 
 export default function CatalogPage() {
   const [searchParams] = useSearchParams()
@@ -11,7 +12,7 @@ export default function CatalogPage() {
     : products
 
     return (
-        <main className="container">
+        <div className="site-shell"><Header /><main className="container">
             <section className="section">
                 <div className="section-heading">
                     <h1>Catálogo</h1>
@@ -23,6 +24,6 @@ export default function CatalogPage() {
                     ))}
                 </div>
             </section>
-        </main>
+        </main></div>
     )   
 }

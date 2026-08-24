@@ -1,56 +1,9 @@
 import { useMemo, useState } from 'react'
-
-interface Cliente {
-  id: number
-  nome: string
-  email: string
-  telefone: string
-  status: 'Ativo' | 'Inativo'
-  cidade: string
-  pedidos: number
-}
-
-const clientes: Cliente[] = [
-  {
-    id: 1,
-    nome: 'Ana Beatriz Souza',
-    email: 'ana.souza@gmail.com',
-    telefone: '(11) 99876-1200',
-    status: 'Ativo',
-    cidade: 'Sao Paulo - SP',
-    pedidos: 3,
-  },
-  {
-    id: 2,
-    nome: 'Carlos Eduardo Lima',
-    email: 'carlos.lima@gmail.com',
-    telefone: '(21) 98765-4321',
-    status: 'Ativo',
-    cidade: 'Rio de Janeiro - RJ',
-    pedidos: 1,
-  },
-  {
-    id: 3,
-    nome: 'Mariana Oliveira',
-    email: 'mariana.oliveira@gmail.com',
-    telefone: '(31) 97654-2109',
-    status: 'Ativo',
-    cidade: 'Belo Horizonte - MG',
-    pedidos: 0,
-  },
-  {
-    id: 4,
-    nome: 'Rafael Martins',
-    email: 'rafael.martins@gmail.com',
-    telefone: '(41) 96543-1098',
-    status: 'Ativo',
-    cidade: 'Curitiba - PR',
-    pedidos: 5,
-  },
-]
+import { obterClientes, type Cliente } from '../data/adminData'
 
 export default function AdminClientesPage() {
   const [busca, setBusca] = useState('')
+  const [clientes] = useState(obterClientes)
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
 
   const clientesFiltrados = useMemo(() => {
@@ -63,7 +16,7 @@ export default function AdminClientesPage() {
         campo.toLowerCase().includes(termo),
       ),
     )
-  }, [busca])
+  }, [busca, clientes])
 
   return (
     <section className="admin-clientes">

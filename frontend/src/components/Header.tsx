@@ -1,7 +1,25 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { encerrarSessao, obterClienteAutenticado } from '../data/adminData'
+import { getCartItemCount, useCart } from '../data/cart'
 import logoIgb from '../assets/logo-igb.png'
 
 export function Header() {
+  const navigate = useNavigate()
+  const [clienteAutenticado, setClienteAutenticado] = useState(obterClienteAutenticado)
+  const { cart } = useCart()
+
+  useEffect(() => {
+    const atualizarSessao = () => setClienteAutenticado(obterClienteAutenticado())
+    window.addEventListener('igb-auth-change', atualizarSessao)
+    return () => window.removeEventListener('igb-auth-change', atualizarSessao)
+  }, [])
+
+  const sair = () => {
+    encerrarSessao()
+    navigate('/')
+  }
+
   return <>
     <div className="topbar">Frete grátis nas compras acima de R$ 299</div>
 
@@ -17,10 +35,11 @@ export function Header() {
       </form>
 
       <div className="header-actions">
-        <Link to="/login">Entrar</Link>
+        {clienteAutenticado ? <><Link to="/minha-conta">Minha conta</Link><Link to="/meus-pedidos">Meus pedidos</Link></> : <Link to="/login">Entrar</Link>}
         <Link className="cart-button" to="/carrinho" aria-label="Carrinho">
-          Carrinho <span className="cart-count">0</span>
+          🛒 Carrinho <span className="cart-count">{getCartItemCount(cart)}</span>
         </Link>
+        {clienteAutenticado && <button type="button" onClick={sair}>Sair</button>}
       </div>
     </header>
 

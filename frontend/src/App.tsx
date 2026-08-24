@@ -9,6 +9,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AdminLayout } from './components/AdminLayout'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminClientesPage from './pages/AdminClientesPage'
+import AdminPedidosPage from './pages/AdminPedidosPage'
+import ClientAccountPage from './pages/ClientAccountPage'
+import CheckoutReviewPage from './pages/CheckoutReviewPage'
+import MyOrdersPage from './pages/MyOrdersPage'
+import OrderConfirmationPage from './pages/OrderConfirmationPage'
 
 
 
@@ -22,6 +27,10 @@ function App() {
     <Route path="/cadastro" element={<RegisterPage />} />
     <Route path="/carrinho" element={<CartPage />} />
     <Route path="/checkout" element={<CheckoutPage />} />
+    <Route path="/checkout/revisao" element={<CheckoutReviewPage />} />
+    <Route path="/pedido-confirmado/:id" element={<OrderConfirmationPage />} />
+    <Route path="/meus-pedidos" element={<MyOrdersPage />} />
+    <Route path="/minha-conta" element={<ClientAccountPage />} />
     <Route
       path="/admin"
       element={
@@ -35,6 +44,14 @@ function App() {
       element={
         <AdminLayout>
           <AdminClientesPage />
+        </AdminLayout>
+      }
+    />
+    <Route
+      path="/admin/pedidos"
+      element={
+        <AdminLayout>
+          <AdminPedidosPage />
         </AdminLayout>
       }
     />

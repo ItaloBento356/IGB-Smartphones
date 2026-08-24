@@ -1,4 +1,22 @@
+import { obterClientes, obterPedidos } from '../data/adminData'
+
+const statusQueRepresentamTroca = ['TROCA', 'ITEM']
+const statusQueGeramFaturamento = ['PAGAMENTO REALIZADO', 'EM TRÂNSITO', 'ENTREGUE']
+const pedidos = obterPedidos()
+
+const quantidadeDeTrocas = pedidos.filter((pedido) =>
+  statusQueRepresentamTroca.some((status) => pedido.status.includes(status)),
+).length
+
+const faturamento = pedidos
+  .filter((pedido) => statusQueGeramFaturamento.includes(pedido.status))
+  .reduce((total, pedido) => total + pedido.valor, 0)
+
+const formatarValor = (valor: number) =>
+  valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
 export default function AdminDashboardPage(){
+  const clientes = obterClientes()
     return(
         <section className="admin-dashboard">
             <header className="admin-page-header">
@@ -9,22 +27,22 @@ export default function AdminDashboardPage(){
         <div className="admin-stats">
             <div className="admin-stat">
                 <span>Pedidos</span>
-                <strong>12</strong>
+              <strong>{pedidos.length}</strong>
         </div>
 
         <div className="admin-stat">
           <span>Clientes</span>
-          <strong>4</strong>
+          <strong>{clientes.length}</strong>
         </div>
 
         <div className="admin-stat">
           <span>Trocas</span>
-          <strong>3</strong>
+          <strong>{quantidadeDeTrocas}</strong>
         </div>
 
         <div className="admin-stat">
           <span>Faturamento</span>
-          <strong>R$ 27.580,00</strong>
+          <strong>{formatarValor(faturamento)}</strong>
         </div>
       </div>
 
