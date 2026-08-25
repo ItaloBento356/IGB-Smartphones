@@ -17,7 +17,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Link to="/admin">Dashboard</Link>
           <Link to="/admin/clientes">Clientes</Link>
           <Link to="/admin/pedidos">Pedidos</Link>
-          <Link to="/admin/analise">Análise</Link>
+          <Link to="/admin/trocas">Trocas</Link>
         </nav>
       </aside>
 

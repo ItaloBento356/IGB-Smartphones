@@ -1,19 +1,66 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { encerrarSessao, obterClienteAutenticado } from '../data/adminData'
 import { getCartItemCount, useCart } from '../data/cart'
 import logoIgb from '../assets/logo-igb.png'
+import { products } from '../data/products'
+import { RecommendationChat } from './RecommendationChat'
 
 export function Header() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [clienteAutenticado, setClienteAutenticado] = useState(obterClienteAutenticado)
+  const [busca, setBusca] = useState(new URLSearchParams(location.search).get('busca') ?? '')
+  const [buscaAtiva, setBuscaAtiva] = useState(false)
+  const searchRef = useRef<HTMLFormElement>(null)
   const { cart } = useCart()
+
+  const resultados = busca.trim()
+    ? products.filter((product) => [product.name, product.brand].some((campo) => campo.toLowerCase().includes(busca.trim().toLowerCase())))
+    : []
 
   useEffect(() => {
     const atualizarSessao = () => setClienteAutenticado(obterClienteAutenticado())
     window.addEventListener('igb-auth-change', atualizarSessao)
     return () => window.removeEventListener('igb-auth-change', atualizarSessao)
   }, [])
+
+  useEffect(() => {
+    const fecharComEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setBuscaAtiva(false)
+    }
+    document.addEventListener('keydown', fecharComEscape)
+    return () => document.removeEventListener('keydown', fecharComEscape)
+  }, [])
+
+  useEffect(() => {
+    const atualizarBusca = window.setTimeout(() => setBusca(new URLSearchParams(location.search).get('busca') ?? ''), 0)
+    return () => window.clearTimeout(atualizarBusca)
+  }, [location.search])
+
+  useEffect(() => {
+    const fecharBusca = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) setBuscaAtiva(false)
+    }
+    document.addEventListener('mousedown', fecharBusca)
+    return () => document.removeEventListener('mousedown', fecharBusca)
+  }, [])
+
+  const pesquisar = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const termo = busca.trim()
+    const resultadosDaBusca = products.filter((product) => [product.name, product.brand].some((campo) => campo.toLowerCase().includes(termo.toLowerCase())))
+    navigate(resultadosDaBusca.length === 1 ? `/produto/${resultadosDaBusca[0].id}` : `/catalogo${termo ? `?busca=${encodeURIComponent(termo)}` : ''}`)
+    setBuscaAtiva(false)
+  }
+
+  const navegarParaSecao = (id: string) => {
+    if (location.pathname !== '/') {
+      navigate(`/#${id}`)
+      return
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const sair = () => {
     encerrarSessao()
@@ -29,9 +76,10 @@ export function Header() {
         <span className="brand-name">IGB Smartphones</span>
       </Link>
 
-      <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
-        <input aria-label="Buscar produtos" placeholder="O que você está procurando?" />
+      <form className="search" ref={searchRef} role="search" onSubmit={pesquisar}>
+        <input aria-label="Buscar produtos" value={busca} onFocus={() => setBuscaAtiva(true)} onChange={(event) => { setBusca(event.target.value); setBuscaAtiva(true) }} placeholder="O que você está procurando?" />
         <button type="submit" aria-label="Buscar">⌕</button>
+        {buscaAtiva && busca.trim() && <div className="search-dropdown">{resultados.length > 0 ? resultados.map((product) => <Link className="search-result" to={`/produto/${product.id}`} key={product.id} onClick={() => setBuscaAtiva(false)}><img src={product.image} alt="" /><span><strong>{product.name}</strong><small>{product.brand} · {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</small></span></Link>) : <p className="search-empty">Nenhum produto encontrado</p>}</div>}
       </form>
 
       <div className="header-actions">
@@ -44,11 +92,9 @@ export function Header() {
     </header>
 
     <nav className="nav" aria-label="Navegação principal">
-      <a href="#inicio">Início</a>
-      <a href="#marcas">Marcas</a>
-      <a href="#ofertas">Ofertas</a>
-      <a href="#destaques">Mais vendidos</a>
-      <a href="#contato">Atendimento</a>
-    </nav>
+      <a href="#inicio" onClick={(event) => { event.preventDefault(); navegarParaSecao('inicio') }}>Início</a>
+      <a href="#marcas" onClick={(event) => { event.preventDefault(); navegarParaSecao('marcas') }}>Marcas</a>
+      <a href="#catalogo" onClick={(event) => { event.preventDefault(); navegarParaSecao('catalogo') }}>Catálogo</a>
+    </nav><RecommendationChat />
   </>
 }

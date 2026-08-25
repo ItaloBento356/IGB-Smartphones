@@ -6,9 +6,10 @@ import { products } from '../data/products'
 
 type ProductCardProps = {
   product: Product
+  showBadge?: boolean
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, showBadge = true }: ProductCardProps) {
   const [adicionado, setAdicionado] = useState(false)
   const { cart, addToCart } = useCart()
 
@@ -30,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <>
       <article className="product-card">
-        {product.badge && <span className="badge">{product.badge}</span>}
+        {showBadge && product.badge && <span className="badge">{product.badge}</span>}
 
         <Link
           to={`/produto/${product.id}`}
@@ -85,7 +86,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="cart-toast-summary">
               <span>
                 {quantidadeCarrinho}{' '}
-                {quantidadeCarrinho === 1 ? 'item' : 'itens - '}
+                {quantidadeCarrinho === 1 ? 'item - ' : 'itens - '}
               </span>
 
               <strong>

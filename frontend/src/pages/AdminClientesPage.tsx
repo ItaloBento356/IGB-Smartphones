@@ -45,7 +45,7 @@ export default function AdminClientesPage() {
                 <th>E-mail</th>
                 <th>Telefone</th>
                 <th>Status</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>

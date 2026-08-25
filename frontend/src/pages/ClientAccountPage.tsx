@@ -85,6 +85,7 @@ export default function ClientAccountPage() {
           {editando && cliente.status === 'Ativo' && <button className="primary-button account-save-button" type="button" onClick={salvarAlteracoes}>Salvar alterações</button>}
           {cliente.status === 'Ativo' && <button className="account-inactivate-button" type="button" onClick={inativarConta}>Inativar conta</button>}
           <Link className="account-orders-link" to="/meus-pedidos">Meus pedidos</Link>
+          <Link className="account-orders-link" to="/cupons">Consultar cupons</Link>
           {cliente.status === 'Inativo' && <p className="account-inactive-note">Esta conta está inativa e não pode ter novos dados alterados.</p>}
         </div>
       </section>

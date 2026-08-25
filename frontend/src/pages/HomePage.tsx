@@ -36,7 +36,7 @@ export default function HomePage() {
                 <h3>{marca.nome}</h3>
             </Link>
         ))}</div></section>
-    <section className="section" id="destaques"><div className="section-heading"><h2>Em destaque</h2><Link to="/catalogo">Ver catálogo →</Link></div><div className="product-grid">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div></section>
+    <section className="section" id="catalogo"><div className="section-heading"><h2>Em destaque</h2><Link to="/catalogo">Ver catálogo →</Link></div><div className="product-grid">{products.slice(0, 4).map((product) => <ProductCard key={product.id} product={product} />)}</div></section>
     <section className="benefits" id="ofertas"><div className="benefit"><span aria-hidden="true">▱</span><div><strong>Compra segura</strong><span>Seus dados protegidos</span></div></div><div className="benefit"><span aria-hidden="true">◇</span><div><strong>Entrega rápida</strong><span>Enviamos para todo o Brasil</span></div></div><div className="benefit"><span aria-hidden="true">↺</span><div><strong>Troca facilitada</strong><span>Até 7 dias para trocar</span></div></div></section>
   </main><footer className="footer" id="contato"><div className="footer-content"><div><strong className="brand-name">IGB Smartphones</strong><p>Seu universo mobile, mais perto.</p></div><div className="footer-links"><a href="#contato">Fale conosco</a><a href="#contato">Política de privacidade</a></div></div></footer></div>
 }

@@ -3,6 +3,7 @@ import { products } from '../data/products'
 import { useState } from 'react'
 import { addToCart } from '../data/cart'
 import { Header } from '../components/Header'
+import { Breadcrumbs } from '../components/Breadcrumbs'
 
 export default function ProductPage() {
   const { id } = useParams()
@@ -39,6 +40,7 @@ export default function ProductPage() {
 
       <main className="container">
         <section className="product-page">
+          <Breadcrumbs items={[{ label: 'Início', to: '/' }, { label: 'Catálogo', to: '/catalogo' }, { label: product.name }]} />
           <Link className="product-back" to="/catalogo">
             ← Voltar para catálogo
           </Link>

@@ -14,6 +14,8 @@ import ClientAccountPage from './pages/ClientAccountPage'
 import CheckoutReviewPage from './pages/CheckoutReviewPage'
 import MyOrdersPage from './pages/MyOrdersPage'
 import OrderConfirmationPage from './pages/OrderConfirmationPage'
+import AdminTrocasPage from './pages/AdminTrocasPage'
+import CouponsPage from './pages/CouponsPage'
 
 
 
@@ -31,6 +33,7 @@ function App() {
     <Route path="/pedido-confirmado/:id" element={<OrderConfirmationPage />} />
     <Route path="/meus-pedidos" element={<MyOrdersPage />} />
     <Route path="/minha-conta" element={<ClientAccountPage />} />
+    <Route path="/cupons" element={<CouponsPage />} />
     <Route
       path="/admin"
       element={
@@ -55,6 +58,7 @@ function App() {
         </AdminLayout>
       }
     />
+    <Route path="/admin/trocas" element={<AdminLayout><AdminTrocasPage /></AdminLayout>} />
   </Routes></BrowserRouter>
 }
 

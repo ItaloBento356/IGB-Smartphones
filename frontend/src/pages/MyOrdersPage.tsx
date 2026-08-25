@@ -46,7 +46,17 @@ export default function MyOrdersPage() {
     atualizarPedido(orderId, { recebimentoConfirmado: true })
   }
 
+    const informDispatch = (orderId: number, productId: number) => {
+      const order = orders.find((currentOrder) => currentOrder.id === orderId)
+      if (!order) return
+      atualizarPedido(orderId, { itens: order.itens?.map((item) => item.produtoId === productId && item.troca?.status === 'TROCA ACEITA' ? { ...item, troca: { ...item.troca, status: 'ITEM ENVIADO' } } : item) })
+    }
+
   const startExchange = (orderId: number, item: ItemPedido) => {
+    if (item.troca?.status === 'TROCA ACEITA') {
+      informDispatch(orderId, item.produtoId)
+      return
+    }
     setExchangeForm({ orderId, productId: item.produtoId, quantity: 1, reason: '', description: '' })
   }
 

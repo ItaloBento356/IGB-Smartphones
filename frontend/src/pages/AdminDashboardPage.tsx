@@ -1,22 +1,19 @@
-import { obterClientes, obterPedidos } from '../data/adminData'
+import { useEffect, useState } from 'react'
+import { obterClientes, obterPedidos, PEDIDOS_UPDATED_EVENT, type Pedido } from '../data/adminData'
 
-const statusQueRepresentamTroca = ['TROCA', 'ITEM']
 const statusQueGeramFaturamento = ['PAGAMENTO REALIZADO', 'EM TRÂNSITO', 'ENTREGUE']
-const pedidos = obterPedidos()
-
-const quantidadeDeTrocas = pedidos.filter((pedido) =>
-  statusQueRepresentamTroca.some((status) => pedido.status.includes(status)),
-).length
-
-const faturamento = pedidos
-  .filter((pedido) => statusQueGeramFaturamento.includes(pedido.status))
-  .reduce((total, pedido) => total + pedido.valor, 0)
-
 const formatarValor = (valor: number) =>
   valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 export default function AdminDashboardPage(){
+  const [pedidos, setPedidos] = useState<Pedido[]>(obterPedidos)
   const clientes = obterClientes()
+  useEffect(() => { const atualizar = () => setPedidos(obterPedidos()); window.addEventListener(PEDIDOS_UPDATED_EVENT, atualizar); return () => window.removeEventListener(PEDIDOS_UPDATED_EVENT, atualizar) }, [])
+  const quantidadeDeTrocas = pedidos.reduce((total, pedido) => total + (pedido.itens?.filter((item) => item.troca).length ?? 0), 0)
+  const faturamento = pedidos.filter((pedido) => statusQueGeramFaturamento.includes(pedido.status)).reduce((total, pedido) => total + pedido.valor, 0)
+  const statusDoGrafico = ['EM ABERTO', 'EM PROCESSAMENTO', 'PAGAMENTO REALIZADO', 'EM TRÂNSITO', 'ENTREGUE', 'TROCA SOLICITADA'] as const
+  const pedidosPorStatus = statusDoGrafico.map((status) => ({ status, quantidade: pedidos.filter((pedido) => pedido.status === status).length }))
+  const maiorQuantidade = Math.max(...pedidosPorStatus.map((item) => item.quantidade), 1)
     return(
         <section className="admin-dashboard">
             <header className="admin-page-header">
@@ -47,11 +44,11 @@ export default function AdminDashboardPage(){
       </div>
 
       <div className="admin-analysis">
-        <h2>Análise de pedidos</h2>
-        <p>Visualização dos pedidos por status.</p>
+        <h2>Pedidos por status</h2>
+        <p>Quantidade de pedidos em cada etapa atual.</p>
 
-        <div className="admin-chart-placeholder">
-          Gráfico de análise
+        <div className="admin-chart" role="img" aria-label="Quantidade de pedidos por status">
+          {pedidosPorStatus.map((item) => <div className="admin-chart-column" key={item.status}><strong>{item.quantidade}</strong><span style={{ height: `${Math.max((item.quantidade / maiorQuantidade) * 100, item.quantidade ? 12 : 2)}%` }} /><small>{item.status}</small></div>)}
         </div>
       </div>
     </section>
