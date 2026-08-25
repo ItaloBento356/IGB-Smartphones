@@ -27,7 +27,7 @@ export const products: Product[] = [
     price: 4299.9,
     color: '#8a9a9d',
     image: galxayS24Image,
-    badge: 'Mais vendido',
+  
   },
 
   {
@@ -37,7 +37,7 @@ export const products: Product[] = [
     price: 2299.9,
     color: '#607d8b',
     image: galaxyA55Image,
-    badge: 'Oferta',
+
   },
 
   {
@@ -56,7 +56,7 @@ export const products: Product[] = [
     price: 4899,
     color: '#b8c9d8',
     image: iphone15Image,
-    badge: 'Oferta',
+  
   },
 
   {
@@ -75,7 +75,7 @@ export const products: Product[] = [
     price: 5799,
     color: '#a8b5a5',
     image: iphone16Image,
-    badge: 'Novo',
+
   },
 
   {
@@ -94,7 +94,7 @@ export const products: Product[] = [
     price: 1899.9,
     color: '#7d8f83',
     image: motorolaG85Image,
-    badge: 'Oferta',
+  
   },
 
   {
@@ -104,7 +104,7 @@ export const products: Product[] = [
     price: 4999.9,
     color: '#9b8798',
     image: motorolaRazr50Image,
-    badge: 'Novo',
+
   },
 
   {
@@ -123,7 +123,7 @@ export const products: Product[] = [
     price: 2199.9,
     color: '#727b8f',
     image: xiaomiNote13ProImage,
-    badge: 'Mais vendido',
+  
   },
 
   {
@@ -133,6 +133,6 @@ export const products: Product[] = [
     price: 4299.9,
     color: '#555d68',
     image: xiaomi14Image,
-    badge: 'Novo',
+   
   },
 ]

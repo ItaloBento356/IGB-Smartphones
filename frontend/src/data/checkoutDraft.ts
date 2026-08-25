@@ -1,6 +1,8 @@
 export interface PaymentDraft {
   selectedCardIds: number[]
   cardAmounts: Record<number, number>
+  couponCode?: string
+  couponCodes?: string[]
 }
 
 const DRAFT_STORAGE_PREFIX = 'igb-smartphones-checkout-rascunho-'

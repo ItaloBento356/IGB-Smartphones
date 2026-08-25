@@ -55,3 +55,16 @@ export const getSelectedAddressId = (clienteId: number) => {
 export const selectAddress = (clienteId: number, addressId: number) => {
   localStorage.setItem(`${SELECTED_ADDRESS_PREFIX}${clienteId}`, String(addressId))
 }
+
+export const updateAddress = (address: Address) => {
+  const addresses = readAddresses()
+  addresses[String(address.clienteId)] = (addresses[String(address.clienteId)] ?? []).map((item) => item.id === address.id ? address : item)
+  saveAddresses(addresses)
+}
+
+export const removeAddress = (clienteId: number, addressId: number) => {
+  const addresses = readAddresses()
+  addresses[String(clienteId)] = (addresses[String(clienteId)] ?? []).filter((item) => item.id !== addressId)
+  saveAddresses(addresses)
+  if (getSelectedAddressId(clienteId) === addressId) localStorage.removeItem(`${SELECTED_ADDRESS_PREFIX}${clienteId}`)
+}

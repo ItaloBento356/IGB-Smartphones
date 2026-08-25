@@ -57,6 +57,7 @@ export interface TrocaPedido {
   quantidade: number
   motivo: string
   descricao?: string
+  dataSolicitacao?: string
 }
 
 export interface EnderecoPedido {
@@ -210,12 +211,20 @@ export const autenticarCliente = (email: string, senha: string) => {
     item.email.toLowerCase() === email.trim().toLowerCase() && item.senhaMock === senha,
   )
 
-  if (!cliente || cliente.status === 'Inativo') return undefined
+  if (!cliente) return undefined
+  if (cliente.status === 'Inativo') {
+    atualizarCliente({ ...cliente, status: 'Ativo' })
+  }
 
   localStorage.setItem(SESSAO_STORAGE_KEY, String(cliente.id))
   mergeGuestCartIntoClient(cliente.id)
   window.dispatchEvent(new Event('igb-auth-change'))
   return cliente
+}
+
+export const validarSenhaCliente = (clienteId: number, senha: string) => {
+  const cliente = obterClientes().find((item) => item.id === clienteId)
+  return Boolean(cliente && cliente.senhaMock === senha)
 }
 
 export const encerrarSessao = () => {

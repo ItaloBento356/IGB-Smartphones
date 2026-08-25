@@ -54,13 +54,15 @@ export function Header() {
     setBuscaAtiva(false)
   }
 
-  const navegarParaSecao = (id: string) => {
-    if (location.pathname !== '/') {
-      navigate(`/#${id}`)
-      return
-    }
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const navegarParaHome = (id: string) => {
+    if (location.pathname === '/') document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    else navigate(`/?secao=${id}`)
   }
+
+  useEffect(() => {
+    const secao = new URLSearchParams(location.search).get('secao')
+    if (location.pathname === '/' && secao) window.setTimeout(() => document.getElementById(secao)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+  }, [location.pathname, location.search])
 
   const sair = () => {
     encerrarSessao()
@@ -68,7 +70,7 @@ export function Header() {
   }
 
   return <>
-    <div className="topbar">Frete grátis nas compras acima de R$ 299</div>
+    <div className="topbar"></div>
 
     <header className="header">
       <Link className="brand" to="/" aria-label="IGB Smartphones - início">
@@ -92,9 +94,10 @@ export function Header() {
     </header>
 
     <nav className="nav" aria-label="Navegação principal">
-      <a href="#inicio" onClick={(event) => { event.preventDefault(); navegarParaSecao('inicio') }}>Início</a>
-      <a href="#marcas" onClick={(event) => { event.preventDefault(); navegarParaSecao('marcas') }}>Marcas</a>
-      <a href="#catalogo" onClick={(event) => { event.preventDefault(); navegarParaSecao('catalogo') }}>Catálogo</a>
+      <a href="/#inicio" onClick={(event) => { event.preventDefault(); navegarParaHome('inicio') }}>Início</a>
+      <a href="/#marcas" onClick={(event) => { event.preventDefault(); navegarParaHome('marcas') }}>Marcas</a>
+      <a href="/#destaques" onClick={(event) => { event.preventDefault(); navegarParaHome('destaques') }}>Destaques</a>
+      <Link to="/catalogo">Catálogo</Link>
     </nav><RecommendationChat />
   </>
 }

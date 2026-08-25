@@ -37,3 +37,15 @@ export const addCard = (card: Omit<PaymentCard, 'id'>) => {
   localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards))
   return newCard
 }
+
+export const updateCard = (card: PaymentCard) => {
+  const cards = readCards()
+  cards[String(card.clienteId)] = (cards[String(card.clienteId)] ?? []).map((item) => item.id === card.id ? card : item)
+  localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards))
+}
+
+export const removeCard = (clienteId: number, cardId: number) => {
+  const cards = readCards()
+  cards[String(clienteId)] = (cards[String(clienteId)] ?? []).filter((item) => item.id !== cardId)
+  localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards))
+}
