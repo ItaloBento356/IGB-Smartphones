@@ -39,6 +39,7 @@ export default function AdminPedidosPage() {
   const [busca, setBusca] = useState('')
   const [statusFiltro, setStatusFiltro] = useState<StatusPedido | 'TODOS'>('TODOS')
   const [pedidos, setPedidos] = useState(obterPedidos)
+  const [pedidoSelecionadoId, setPedidoSelecionadoId] = useState<number | null>(null)
 
   useEffect(() => {
     const atualizarLista = () => setPedidos(obterPedidos())
@@ -122,16 +123,7 @@ export default function AdminPedidosPage() {
                     <td>{formatarValor(pedido.valor)}</td>
                     <td><span className="admin-status admin-status-pedido">{pedido.status}</span>{pedido.statusPagamento && <small className="admin-refund-status">Pagamento: Estorno pendente</small>}{pedido.recebimentoConfirmado && <small className="admin-receipt-status">Recebimento confirmado</small>}</td>
                     <td>
-                      {pedido.itens && (
-                        <details className="admin-order-details">
-                          <summary>Ver detalhes</summary>
-                          <div><strong>Produtos</strong>{pedido.itens.map((item) => <span key={item.produtoId}>{item.nome} x {item.quantidade} - {formatarValor(item.subtotal)}{item.troca && ` | Troca: ${item.troca.quantidade} un. - ${item.troca.status} - ${item.troca.motivo}`}</span>)}</div>
-                          {pedido.enderecoEntrega && <div><strong>Endereco de entrega</strong><span>{pedido.enderecoEntrega.nome}: {pedido.enderecoEntrega.logradouro}, {pedido.enderecoEntrega.numero}, {pedido.enderecoEntrega.cidade} - {pedido.enderecoEntrega.estado}, CEP {pedido.enderecoEntrega.cep}</span></div>}
-                          {pedido.pagamentos && <div><strong>Pagamentos</strong>{pedido.pagamentos.map((pagamento) => <span key={pagamento.cartaoId}>{pagamento.bandeira} •••• {pagamento.ultimosQuatroDigitos} - {formatarValor(pagamento.valorPago)}</span>)}</div>}
-                          {pedido.recebimentoConfirmado && <span className="admin-order-received">Recebimento confirmado pelo cliente</span>}
-                          {pedido.statusPagamento && <span className="admin-order-received">Pagamento: Estorno pendente</span>}
-                        </details>
-                      )}
+                      <button className="admin-action-button" type="button" onClick={() => setPedidoSelecionadoId(pedido.id)}>Ver detalhes</button>
                       <select
                         className="admin-status-select"
                         value=""
@@ -155,6 +147,19 @@ export default function AdminPedidosPage() {
           </table>
         </div>
       </div>
+
+      {pedidoSelecionadoId !== null && (() => {
+        const pedido = pedidos.find((item) => item.id === pedidoSelecionadoId)
+        const cliente = pedido ? clientes.find((item) => item.id === pedido.clienteId) : undefined
+        if (!pedido) return null
+        return <aside className="admin-detail-panel" aria-labelledby="pedido-detalhes-titulo">
+          <div className="admin-detail-heading"><div><span className="admin-detail-label">Detalhes do pedido</span><h2 id="pedido-detalhes-titulo">Pedido #{pedido.id}</h2></div><button className="admin-close-button" type="button" onClick={() => setPedidoSelecionadoId(null)}>Fechar</button></div>
+          <dl className="admin-detail-grid"><div><dt>Cliente</dt><dd>{cliente?.nome ?? 'Cliente não encontrado'}</dd></div><div><dt>Data</dt><dd>{pedido.data}</dd></div><div><dt>Status</dt><dd>{pedido.status}</dd></div><div><dt>Valor</dt><dd>{formatarValor(pedido.valor)}</dd></div></dl>
+          <div className="admin-detail-list"><strong>Produtos</strong>{pedido.itens?.map((item) => <span key={item.produtoId}>{item.nome} x {item.quantidade} - {formatarValor(item.subtotal)}</span>)}</div>
+          {pedido.enderecoEntrega && <div className="admin-detail-list"><strong>Entrega</strong><span>{pedido.enderecoEntrega.logradouro}, {pedido.enderecoEntrega.numero}, {pedido.enderecoEntrega.cidade} - {pedido.enderecoEntrega.estado}</span></div>}
+          {pedido.pagamentos && <div className="admin-detail-list"><strong>Pagamentos</strong>{pedido.pagamentos.map((pagamento) => <span key={pagamento.cartaoId}>{pagamento.bandeira} •••• {pagamento.ultimosQuatroDigitos} - {formatarValor(pagamento.valorPago)}</span>)}</div>}
+        </aside>
+      })()}
     </section>
   )
 }

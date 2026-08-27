@@ -9,17 +9,16 @@ type ProductCardProps = {
   showBadge?: boolean
 }
 
-export function ProductCard({ product, showBadge = true }: ProductCardProps) {
+export function ProductCard({ product, showBadge = false }: ProductCardProps) {
   const [adicionado, setAdicionado] = useState(false)
   const { cart, addToCart } = useCart()
 
+  const itemNoCarrinho = cart.find((item) => item.productId === product.id)
   const quantidadeCarrinho = getCartItemCount(cart)
+  const subtotalItem = (itemNoCarrinho?.quantity ?? 1) * product.price
 
   const totalCarrinho = cart.reduce((total, item) => {
-    const produto = products.find(
-      (currentProduct) => currentProduct.id === item.productId
-    )
-
+    const produto = products.find((currentProduct) => currentProduct.id === item.productId)
     return total + (produto?.price ?? 0) * item.quantity
   }, 0)
 
@@ -53,65 +52,56 @@ export function ProductCard({ product, showBadge = true }: ProductCardProps) {
 
         <div className="product-footer">
           <span className="price">
-            R${' '}
             {product.price.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
               minimumFractionDigits: 2,
             })}
           </span>
 
-          <button
-            className="add-button"
-            type="button"
-            onClick={adicionar}
-          >
-            Comprar
+          <button className="add-button" type="button" onClick={adicionar}>
+            Adicionar ao carrinho
           </button>
         </div>
 
-        <Link
-          className="product-card-link"
-          to={`/produto/${product.id}`}
-        >
+        <Link className="product-card-link" to={`/produto/${product.id}`}>
           Ver detalhes
         </Link>
       </article>
 
       {adicionado && (
-        <div className="cart-toast" role="status">
-          <div className="cart-toast-content">
-            <strong>Produto adicionado ao carrinho</strong>
+        <aside className="cart-toast" role="status" aria-live="polite">
+          <div className="cart-toast-header">
+            <strong>Seu carrinho</strong>
+            <span>{quantidadeCarrinho} item{quantidadeCarrinho === 1 ? '' : 's'}</span>
+          </div>
 
-            <span>{product.name}</span>
-
-            <div className="cart-toast-summary">
-              <span>
-                {quantidadeCarrinho}{' '}
-                {quantidadeCarrinho === 1 ? 'item - ' : 'itens - '}
-              </span>
-
-              <strong>
-                R${' '}
-                {totalCarrinho.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 2,
-                })}
-              </strong>
+          <div className="cart-toast-item">
+            <img src={product.image} alt={product.name} />
+            <div>
+              <h4>{product.name}</h4>
+              <span>{itemNoCarrinho?.quantity ?? 1}x · {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
             </div>
+            <strong>{subtotalItem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+          </div>
+
+          <div className="cart-toast-total">
+            <span>Subtotal</span>
+            <strong>{totalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
           </div>
 
           <div className="cart-toast-actions">
-            <Link to="/carrinho" className="cart-toast-button">
-              Ver carrinho
+            <Link to="/checkout" className="cart-toast-button primary-button">
+              Finalizar compra
             </Link>
-
-            <button
-              type="button"
-              className="cart-toast-close"
-              onClick={() => setAdicionado(false)}
-            >
+            <button type="button" className="cart-toast-close" onClick={() => setAdicionado(false)}>
               Continuar comprando
             </button>
+            <Link to="/carrinho" className="cart-toast-link">
+              Ver carrinho completo
+            </Link>
           </div>
-        </div>
+        </aside>
       )}
     </>
   )

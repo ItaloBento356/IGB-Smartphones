@@ -45,7 +45,8 @@ export default function AdminDashboardPage(){
 
       <div className="admin-analysis">
         <h2>Pedidos por status</h2>
-        <p>Quantidade de pedidos em cada etapa atual.</p>
+      <p>Quantidade de pedidos em cada etapa atual. Período: todos os pedidos registrados.</p>
+      <div className="admin-chart-legend"><span><i /> Pedidos</span><small>Escala: quantidade de pedidos</small></div>
 
         <div className="admin-chart" role="img" aria-label="Quantidade de pedidos por status">
           {pedidosPorStatus.map((item) => <div className="admin-chart-column" key={item.status}><strong>{item.quantidade}</strong><span style={{ height: `${Math.max((item.quantidade / maiorQuantidade) * 100, item.quantidade ? 12 : 2)}%` }} /><small>{item.status}</small></div>)}

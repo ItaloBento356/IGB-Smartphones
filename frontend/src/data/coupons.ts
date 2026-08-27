@@ -10,8 +10,8 @@ export interface Coupon {
 }
 
 export const coupons: Coupon[] = [
-  { code: 'TECH5', description: '5% de desconto adicional', condition: 'Desconto adicional para compras no site.', discountPercent: 5 },
-  { code: 'BEMVINDO10', description: '10% de desconto na primeira compra', condition: 'Válido para clientes novos.', discountPercent: 10 },
+  { code: 'TECH5', description: ' -5% de desconto - ', condition: 'Desconto adicional para compras no site.', discountPercent: 5 },
+  { code: 'BEMVINDO10', description: '  10% de desconto na primeira compra - ', condition: 'Válido para clientes novos.', discountPercent: 10 },
 ]
 
 export const getCouponDiscount = (coupon: Coupon | undefined, subtotal: number) => {

@@ -25,7 +25,8 @@ export default function AdminClientesPage() {
         <p>Consulte os clientes cadastrados na IGB Smartphones.</p>
       </header>
 
-      <div className="admin-list-panel">
+      <div className="admin-split-panel">
+        <div className="admin-list-panel">
         <div className="admin-list-toolbar">
           <label htmlFor="busca-clientes">Buscar cliente</label>
           <input
@@ -80,10 +81,10 @@ export default function AdminClientesPage() {
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
 
-      {clienteSelecionado && (
-        <div className="admin-detail-panel" role="dialog" aria-labelledby="cliente-detalhes-titulo">
+        {clienteSelecionado && (
+          <aside className="admin-detail-panel" aria-labelledby="cliente-detalhes-titulo">
           <div className="admin-detail-heading">
             <div>
               <span className="admin-detail-label">Detalhes do cliente</span>
@@ -105,8 +106,9 @@ export default function AdminClientesPage() {
             <div><dt>Cidade</dt><dd>{clienteSelecionado.cidade}</dd></div>
             <div><dt>Pedidos realizados</dt><dd>{clienteSelecionado.pedidos}</dd></div>
           </dl>
-        </div>
-      )}
+          </aside>
+        )}
+      </div>
     </section>
   )
 }

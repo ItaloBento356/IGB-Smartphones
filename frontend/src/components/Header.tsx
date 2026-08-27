@@ -16,7 +16,11 @@ export function Header() {
   const { cart } = useCart()
 
   const resultados = busca.trim()
-    ? products.filter((product) => [product.name, product.brand].some((campo) => campo.toLowerCase().includes(busca.trim().toLowerCase())))
+    ? [...new Map(
+        products
+          .filter((product) => [product.name, product.brand].some((campo) => campo.toLowerCase().includes(busca.trim().toLowerCase())))
+          .map((product) => [product.id, product]),
+      ).values()]
     : []
 
   useEffect(() => {
@@ -55,13 +59,19 @@ export function Header() {
   }
 
   const navegarParaHome = (id: string) => {
-    if (location.pathname === '/') document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    else navigate(`/?secao=${id}`)
+    if (location.pathname === '/') {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+
+    navigate(`/?secao=${id}`)
   }
 
   useEffect(() => {
     const secao = new URLSearchParams(location.search).get('secao')
-    if (location.pathname === '/' && secao) window.setTimeout(() => document.getElementById(secao)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+    if (location.pathname === '/' && secao) {
+      window.setTimeout(() => document.getElementById(secao)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+    }
   }, [location.pathname, location.search])
 
   const sair = () => {
@@ -69,35 +79,84 @@ export function Header() {
     navigate('/')
   }
 
-  return <>
-    <div className="topbar"></div>
+  return (
+    <>
+      <div className="topbar" />
 
-    <header className="header">
-      <Link className="brand" to="/" aria-label="IGB Smartphones - início">
-        <img className="brand-logo" src={logoIgb} alt="IGB Smartphones" />
-        <span className="brand-name">IGB Smartphones</span>
-      </Link>
-
-      <form className="search" ref={searchRef} role="search" onSubmit={pesquisar}>
-        <input aria-label="Buscar produtos" value={busca} onFocus={() => setBuscaAtiva(true)} onChange={(event) => { setBusca(event.target.value); setBuscaAtiva(true) }} placeholder="O que você está procurando?" />
-        <button type="submit" aria-label="Buscar">⌕</button>
-        {buscaAtiva && busca.trim() && <div className="search-dropdown">{resultados.length > 0 ? resultados.map((product) => <Link className="search-result" to={`/produto/${product.id}`} key={product.id} onClick={() => setBuscaAtiva(false)}><img src={product.image} alt="" /><span><strong>{product.name}</strong><small>{product.brand} · {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</small></span></Link>) : <p className="search-empty">Nenhum produto encontrado</p>}</div>}
-      </form>
-
-      <div className="header-actions">
-        {clienteAutenticado ? <><Link to="/minha-conta">Minha conta</Link><Link to="/meus-pedidos">Meus pedidos</Link></> : <Link to="/login">Entrar</Link>}
-        <Link className="cart-button" to="/carrinho" aria-label="Carrinho">
-          🛒 Carrinho <span className="cart-count">{getCartItemCount(cart)}</span>
+      <header className="header">
+        <Link className="brand" to="/" aria-label="IGB Smartphones - início">
+          <img className="brand-logo" src={logoIgb} alt="IGB Smartphones" />
+          <span className="brand-name">IGB Smartphones</span>
         </Link>
-        {clienteAutenticado && <button type="button" onClick={sair}>Sair</button>}
-      </div>
-    </header>
 
-    <nav className="nav" aria-label="Navegação principal">
-      <a href="/#inicio" onClick={(event) => { event.preventDefault(); navegarParaHome('inicio') }}>Início</a>
-      <a href="/#marcas" onClick={(event) => { event.preventDefault(); navegarParaHome('marcas') }}>Marcas</a>
-      <a href="/#destaques" onClick={(event) => { event.preventDefault(); navegarParaHome('destaques') }}>Destaques</a>
-      <Link to="/catalogo">Catálogo</Link>
-    </nav><RecommendationChat />
-  </>
+        <form className="search" ref={searchRef} role="search" onSubmit={pesquisar}>
+          <input
+            aria-label="Buscar produtos"
+            value={busca}
+            onFocus={() => setBuscaAtiva(true)}
+            onChange={(event) => {
+              setBusca(event.target.value)
+              setBuscaAtiva(true)
+            }}
+            placeholder="O que você está procurando?"
+          />
+          <button type="submit" aria-label="Buscar">⌕</button>
+          {buscaAtiva && busca.trim() && (
+            <div className="search-dropdown">
+              {resultados.length > 0 ? (
+                resultados.map((product) => (
+                  <Link
+                    className="search-result"
+                    to={`/produto/${product.id}`}
+                    key={product.id}
+                    onClick={() => setBuscaAtiva(false)}
+                  >
+                    <img src={product.image} alt="" />
+                    <span>
+                      <strong>{product.name}</strong>
+                      <small>
+                        {product.brand} · {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </small>
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <p className="search-empty">Nenhum produto encontrado</p>
+              )}
+            </div>
+          )}
+        </form>
+
+        <div className="header-actions">
+          {clienteAutenticado ? (
+            <>
+              <Link to="/minha-conta">Minha conta</Link>
+              <Link to="/meus-pedidos">Meus pedidos</Link>
+            </>
+          ) : (
+            <Link to="/login">Entrar</Link>
+          )}
+
+          <Link className="cart-button" to="/carrinho" aria-label="Carrinho">
+            🛒 Carrinho <span className="cart-count">{getCartItemCount(cart)}</span>
+          </Link>
+
+          {clienteAutenticado && (
+            <button type="button" onClick={sair}>
+              Sair
+            </button>
+          )}
+        </div>
+      </header>
+
+      <nav className="nav" aria-label="Navegação principal">
+        <a href="/#inicio" onClick={(event) => { event.preventDefault(); navegarParaHome('inicio') }}>Início</a>
+        <a href="/#marcas" onClick={(event) => { event.preventDefault(); navegarParaHome('marcas') }}>Marcas</a>
+        <a href="/#destaques" onClick={(event) => { event.preventDefault(); navegarParaHome('destaques') }}>Destaques</a>
+        <Link to="/catalogo">Catálogo</Link>
+      </nav>
+
+      <RecommendationChat />
+    </>
+  )
 }

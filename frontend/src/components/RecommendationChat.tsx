@@ -4,56 +4,158 @@ import { products } from '../data/products'
 
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-const interpretarMensagem = (mensagem: string) => {
-  const texto = normalizar(mensagem)
-  const marcas = [...new Set(products.map((product) => product.brand))]
-  const marca = marcas.find((item) => texto.includes(normalizar(item)))
-  const mencionaIphone = texto.includes('iphone')
-  const encontrouModelo = products.some((product) => {
-    const nome = normalizar(product.name)
-    return texto.includes(nome) || nome.split(' ').some((parte) => parte.length > 3 && texto.includes(parte))
-  })
-  const falaDeAparelho = /celular|smartphone|aparelho|telefone|mobile/.test(texto)
-  const falaDeCompra = /quero|comprar|compra|procuro|preciso|tem algum|recomenda|sugestao/.test(texto)
-  const falaDePreco = /preco|valor|barato|mais barato|menor preco|economico|ate|menos de|abaixo de/.test(texto)
-  const falaDeCaracteristica = /camera|bateria|memoria|armazenamento|desempenho|jogo|jogar|tela|5g/.test(texto)
-  const mensagemRelevante = Boolean(marca || mencionaIphone || encontrouModelo || falaDeAparelho || falaDeCompra || falaDePreco || falaDeCaracteristica)
-  const faixaEncontrada = texto.match(/entre\s*r?\$?\s*([\d.]+(?:,\d{1,2})?)\s*e\s*r?\$?\s*([\d.]+(?:,\d{1,2})?)/)
-  const limiteEncontrado = texto.match(/(?:ate|menos de|abaixo de)\s*r?\$?\s*([\d.]+(?:,\d{1,2})?)/)
-  const converterValor = (valor: string) => Number(valor.replace(/\./g, '').replace(',', '.'))
-  const faixa = faixaEncontrada ? [converterValor(faixaEncontrada[1]), converterValor(faixaEncontrada[2])] : undefined
-  const limite = limiteEncontrado ? converterValor(limiteEncontrado[1]) : undefined
-  const mencionaPrecoBaixo = /barato|mais barato|menor preco|economico/.test(texto)
-  if (!mensagemRelevante) return { produtos: [], limite, relevante: false }
-  if (!marca && !mencionaIphone && !encontrouModelo && !limite && !faixa && !mencionaPrecoBaixo && !falaDeCaracteristica && !falaDeAparelho) return { produtos: [], limite, relevante: false }
-  const filtros = products.filter((product) => {
-    const correspondeMarca = marca ? product.brand === marca : mencionaIphone ? product.brand === 'Apple' : true
-    const correspondeNome = encontrouModelo && !marca && !mencionaIphone ? normalizar(`${product.name} ${product.brand}`).split(' ').some((parte) => parte.length > 3 && texto.includes(parte)) : true
-    const correspondePreco = faixa ? product.price >= faixa[0] && product.price <= faixa[1] : limite === undefined || product.price <= limite
-    return correspondeMarca && correspondeNome && correspondePreco
-  })
+const converterValor = (valor: string) => {
+  const textoLimpo = valor.replace(/\./g, '').replace(',', '.')
+  return Number.parseFloat(textoLimpo) || 0
+}
 
-  return { produtos: [...filtros].sort((a, b) => mencionaPrecoBaixo ? a.price - b.price : 0).slice(0, marca || mencionaIphone || encontrouModelo || limite || faixa || mencionaPrecoBaixo ? products.length : 3), limite, relevante: true }
+const interpretarMensagem = (mensagem: string) => {
+  const texto = normalizar(mensagem.trim())
+
+  if (!texto) {
+    return { tipo: 'vazio' as const }
+  }
+
+  const marcas = [...new Set(products.map((product) => product.brand.toLowerCase()))]
+  const marcaEncontrada = marcas.find((marca) => texto.includes(marca))
+  const produtoExato = products.find((product) => texto.includes(normalizar(product.name)))
+  const intervalos = [
+    texto.match(/(?:entre|de)\s*([\d.]+)\s*(?:e|a)\s*([\d.]+)/),
+    texto.match(/([\d.]+)\s*(?:a|até|ate)\s*([\d.]+)/),
+  ].find(Boolean)
+
+  const limite = texto.match(/(?:ate|até|ate|abaixo de|menos de)\s*\$?\s*([\d.]+)/)?.[1]
+  const limiteNumero = limite ? converterValor(limite) : undefined
+  const faixa = intervalos
+    ? [converterValor(intervalos[1]), converterValor(intervalos[2])]
+    : undefined
+
+  const querEscolher = /(ajuda|escolher|recomendar|sugestao|sugestão|procurando|procuro)/.test(texto)
+  const perguntaForaDoContexto = !/(smartphone|celular|telefone|aparelho|iphone|galaxy|samsung|apple|motorola|xiaomi|redmi|preço|valor|compra|comprar|marca|modelo)/.test(texto)
+
+  if (perguntaForaDoContexto && !querEscolher && !marcaEncontrada && !produtoExato && !limiteNumero && !faixa) {
+    return { tipo: 'fora-do-contexto' as const }
+  }
+
+  let produtos = products
+
+  if (marcaEncontrada) {
+    produtos = products.filter((product) => normalizar(product.brand) === marcaEncontrada)
+  }
+
+  if (produtoExato && !marcaEncontrada) {
+    produtos = products.filter((product) => normalizar(product.name).includes(normalizar(produtoExato.name)))
+  }
+
+  if (faixa) {
+    const [inicio, fim] = faixa
+    produtos = produtos.filter((product) => product.price >= inicio && product.price <= fim)
+  }
+
+  if (limiteNumero !== undefined) {
+    produtos = produtos.filter((product) => product.price <= limiteNumero)
+  }
+
+  if (/(barato|mais barato|economico|menor valor)/.test(texto)) {
+    produtos = [...produtos].sort((a, b) => a.price - b.price).slice(0, 6)
+  }
+
+  if (!marcaEncontrada && !produtoExato && !faixa && !limiteNumero && querEscolher) {
+    produtos = products.slice(0, 4)
+  }
+
+  return {
+    tipo: 'catalogo' as const,
+    produtos: [...new Map(produtos.map((product) => [product.id, product])).values()],
+  }
 }
 
 export function RecommendationChat() {
   const [aberto, setAberto] = useState(false)
   const [mensagem, setMensagem] = useState('')
-  const [resposta, setResposta] = useState('Posso sugerir aparelhos por marca ou modelo. O que você procura?')
+  const [resposta, setResposta] = useState('Posso ajudar com smartphones, preços e marcas da loja. O que você procura?')
   const [recomendados, setRecomendados] = useState<typeof products>([])
+
   const enviar = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
     if (!mensagem.trim()) {
-      setRecomendados([])
-      setResposta('Digite uma mensagem para receber uma recomendação.')
       return
     }
+
     const interpretacao = interpretarMensagem(mensagem)
+
+    if (interpretacao.tipo === 'vazio') {
+      return
+    }
+
+    if (interpretacao.tipo === 'fora-do-contexto') {
+      setResposta('Posso ajudar com smartphones, marcas, modelos e preços da loja. Se quiser, posso indicar opções por marca ou faixa de preço.')
+      setRecomendados([])
+      setMensagem('')
+      return
+    }
+
     setRecomendados(interpretacao.produtos)
-    setResposta(interpretacao.produtos.length ? `Encontrei ${interpretacao.produtos.length} opção(ões) reais no catálogo:` : interpretacao.relevante && interpretacao.limite !== undefined ? 'Não encontrei produtos dentro desse limite de preço. Tente um valor maior ou outra marca.' : interpretacao.relevante ? 'Não encontrei esse modelo ou marca no catálogo. Tente Samsung, Apple, Motorola ou Xiaomi.' : /oi|ola|bom dia|boa tarde|boa noite/.test(normalizar(mensagem)) ? 'Olá! Posso ajudar você a encontrar um smartphone. Você pode me dizer uma marca, modelo ou faixa de preço?' : 'Posso ajudar você a encontrar smartphones, comparar produtos, marcas e preços. O que você procura?')
+
+    if (interpretacao.produtos.length === 0) {
+      setResposta('Não encontrei um resultado exato para sua busca. Posso sugerir opções por marca ou preço.')
+    } else {
+      const texto = interpretacao.produtos.length === 1 ? 'Encontrei 1 opção relevante:' : `Encontrei ${interpretacao.produtos.length} opções relevantes:`
+      setResposta(texto)
+    }
+
     setMensagem('')
   }
-  return <div className="recommendation-chat"><button className="chat-toggle" type="button" onClick={() => setAberto(!aberto)} aria-expanded={aberto}>💬 Recomendar</button>{aberto && <section className="chat-panel" aria-label="Assistente de recomendações"><div className="chat-heading"><strong>Assistente IGB</strong><button type="button" onClick={() => setAberto(false)} aria-label="Fechar assistente">×</button></div><p>{resposta}</p><div className="chat-recommendations">{recomendados.map((product) => <Link to={`/produto/${product.id}`} key={product.id}><img src={product.image} alt="" /><span>{product.name}<small>{product.brand} · {formatPrice(product.price)}</small></span></Link>)}</div><form onSubmit={enviar}><input value={mensagem} onChange={(event) => setMensagem(event.target.value)} placeholder="Ex.: Samsung" aria-label="Mensagem para o assistente" /><button type="submit">Enviar</button></form></section>}</div>
+
+  return (
+    <div className="recommendation-chat">
+      <button className="chat-toggle" type="button" onClick={() => setAberto(!aberto)} aria-expanded={aberto}>
+        💬 Assistente IGB
+      </button>
+
+      {aberto && (
+        <section className="chat-panel" aria-label="Assistente de recomendações">
+          <div className="chat-heading">
+            <strong>Assistente IGB</strong>
+            <button type="button" onClick={() => setAberto(false)} aria-label="Fechar assistente">
+              ×
+            </button>
+          </div>
+
+          <p>{resposta}</p>
+
+          <div className="chat-recommendations">
+            {recomendados.length > 0 ? (
+              recomendados.map((product) => (
+                <Link to={`/produto/${product.id}`} key={product.id}>
+                  <img src={product.image} alt="" />
+                  <span>
+                    {product.name}
+                    <small>
+                      {product.brand} · {formatPrice(product.price)}
+                    </small>
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <p className="chat-empty">Diga uma marca, modelo ou faixa de preço.</p>
+            )}
+          </div>
+
+          <form onSubmit={enviar}>
+            <input
+              value={mensagem}
+              onChange={(event) => setMensagem(event.target.value)}
+              placeholder="Ex.: quero um Samsung até R$ 3000"
+              aria-label="Mensagem para o assistente"
+            />
+            <button type="submit">Enviar</button>
+          </form>
+        </section>
+      )}
+    </div>
+  )
 }
 
 const formatPrice = (price: number) => price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })

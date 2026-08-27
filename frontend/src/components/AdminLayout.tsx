@@ -1,36 +1,33 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
+  const location = useLocation()
+
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      <header className="admin-topbar">
         <div className="admin-brand">
           <strong>IGB</strong>
           <span>Smartphones</span>
         </div>
 
-        <nav className="admin-nav">
-          <Link to="/admin">Dashboard</Link>
-          <Link to="/admin/clientes">Clientes</Link>
-          <Link to="/admin/pedidos">Pedidos</Link>
-          <Link to="/admin/trocas">Trocas</Link>
+        <nav className="admin-nav" aria-label="Navegação administrativa">
+          <Link to="/admin" aria-current={location.pathname === '/admin' ? 'page' : undefined}>Dashboard</Link>
+          <Link to="/admin/clientes" aria-current={location.pathname === '/admin/clientes' ? 'page' : undefined}>Clientes</Link>
+          <Link to="/admin/pedidos" aria-current={location.pathname === '/admin/pedidos' ? 'page' : undefined}>Pedidos</Link>
+          <Link to="/admin/trocas" aria-current={location.pathname === '/admin/trocas' ? 'page' : undefined}>Trocas</Link>
         </nav>
-      </aside>
 
-      <div className="admin-main">
-        <header className="admin-topbar">
-          <span>Painel administrativo</span>
-          <span>Administrador</span>
-        </header>
+        <span className="admin-user-pill">Administrador</span>
+      </header>
 
-        <main className="admin-content">
-          {children}
-        </main>
-      </div>
+      <main className="admin-content">
+        {children}
+      </main>
     </div>
   )
 }
