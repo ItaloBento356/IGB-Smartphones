@@ -18,6 +18,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="admin-nav" aria-label="Navegação administrativa">
           <Link to="/admin" aria-current={location.pathname === '/admin' ? 'page' : undefined}>Dashboard</Link>
           <Link to="/admin/clientes" aria-current={location.pathname === '/admin/clientes' ? 'page' : undefined}>Clientes</Link>
+          <Link to="/admin/clientes/consulta" aria-current={location.pathname === '/admin/clientes/consulta' ? 'page' : undefined}>Consulta de Clientes</Link>
           <Link to="/admin/pedidos" aria-current={location.pathname === '/admin/pedidos' ? 'page' : undefined}>Pedidos</Link>
           <Link to="/admin/trocas" aria-current={location.pathname === '/admin/trocas' ? 'page' : undefined}>Trocas</Link>
         </nav>

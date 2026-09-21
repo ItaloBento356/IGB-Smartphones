@@ -258,9 +258,19 @@ a { color: inherit; text-decoration: none; }
 .account-status-row button, .account-inactivate-button { background: none; border: 0; color: #e85d2a; font-weight: 700; padding: 0.5rem 0; }
 .account-fields { display: grid; gap: 1rem; grid-template-columns: repeat(2, 1fr); }
 .account-fields label, .account-form label { color: #52606a; display: grid; font-size: 0.82rem; font-weight: 700; gap: 0.4rem; }
-.account-fields input, .account-form input { border: 1px solid #dce2da; color: #17212b; padding: 0.75rem; width: 100%; }
+.account-fields input, .account-form input,
+.account-fields select, .account-form select,
+.account-fields textarea, .account-form textarea { border: 1px solid #dce2da; color: #17212b; font: inherit; padding: 0.75rem; width: 100%; }
 .account-fields input:disabled { background: #f5f7f4; color: #52606a; }
+.account-fields textarea { resize: vertical; }
 .account-save-button { cursor: pointer; margin: 1.5rem 0 0; }
+.account-save-button:disabled { cursor: not-allowed; opacity: 0.7; }
+.account-form-section { border: 1px solid #e4e9e2; margin: 0; padding: 1.1rem 1.2rem 1.4rem; }
+.account-form-section legend { color: #17212b; font-size: 0.95rem; font-weight: 800; padding: 0 0.4rem; }
+.account-fields input[aria-invalid="true"], .account-fields select[aria-invalid="true"] { border: 2px solid #a8432a; }
+.account-error-banner { background: #fdecea; border: 2px solid #a8432a; color: #7a2e1d; display: grid; gap: 0.3rem; margin-top: 0.5rem; padding: 0.9rem 1rem; }
+.account-error-banner strong { font-size: 0.9rem; }
+.account-error-banner span { font-size: 0.85rem; }
 .account-inactivate-button { background: #fff0eb; border: 1px solid #d5b7ae; color: #a8432a; display: block; font-weight: 800; margin-top: 0.8rem; padding: 0.75rem 1rem; text-transform: uppercase; }
 .account-navigation { border-bottom: 1px solid #e2e7e0; display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; padding: 1.25rem 0 1.5rem; }
 .account-navigation .account-orders-link { background: #dce9dd; color: #17212b; font-weight: 700; padding: 0.8rem 1rem; }
@@ -561,6 +571,13 @@ a { color: inherit; text-decoration: none; }
 .admin-table td:last-child { min-width: 190px; }
 .admin-table td:last-child .admin-action-button { margin-right: 0.45rem; }
 .admin-table-empty { padding: 28px 12px !important; color: #707070; text-align: center; }
+
+.admin-filtros-form { display: grid; gap: 16px; margin-bottom: 20px; }
+.admin-filtros-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.admin-filtros-grid label { color: #171717; display: grid; font-size: 13px; font-weight: 600; gap: 6px; }
+.admin-filtros-grid input { border: 1px solid #d5d5d5; border-radius: 8px; color: #171717; font: inherit; padding: 11px 13px; width: 100%; }
+.admin-filtros-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
 
 .admin-detail-panel { margin-top: 20px; }
 .admin-detail-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }

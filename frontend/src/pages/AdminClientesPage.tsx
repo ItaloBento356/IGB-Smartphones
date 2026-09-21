@@ -1,10 +1,39 @@
-import { useMemo, useState } from 'react'
-import { obterClientes, type Cliente } from '../data/adminData'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { consultarClientes } from '../data/clienteApi'
+import type { ClienteConsulta } from '../data/clienteApi'
+import { formatarCpf } from '../utils/formatadores'
 
 export default function AdminClientesPage() {
+  const navigate = useNavigate()
   const [busca, setBusca] = useState('')
-  const [clientes] = useState(obterClientes)
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
+  const [clientes, setClientes] = useState<ClienteConsulta[]>([])
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState('')
+  const [clienteSelecionado, setClienteSelecionado] = useState<ClienteConsulta | null>(null)
+
+  useEffect(() => {
+    let cancelado = false
+    setCarregando(true)
+    setErro('')
+
+    consultarClientes()
+      .then((resultado) => {
+        if (!cancelado) setClientes(resultado)
+      })
+      .catch((erroCapturado) => {
+        if (!cancelado) {
+          setErro(erroCapturado instanceof Error ? erroCapturado.message : 'Erro ao carregar clientes. Tente novamente.')
+        }
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false)
+      })
+
+    return () => {
+      cancelado = true
+    }
+  }, [])
 
   const clientesFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
@@ -12,7 +41,7 @@ export default function AdminClientesPage() {
     if (!termo) return clientes
 
     return clientes.filter((cliente) =>
-      [cliente.nome, cliente.email, cliente.telefone].some((campo) =>
+      [cliente.nome, cliente.email, cliente.telefoneNumero, cliente.cpf, cliente.codigoCliente].some((campo) =>
         campo.toLowerCase().includes(termo),
       ),
     )
@@ -34,15 +63,24 @@ export default function AdminClientesPage() {
             type="search"
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
-            placeholder="Nome, e-mail ou telefone"
+            placeholder="Código, nome, CPF, e-mail ou telefone"
           />
         </div>
+
+        {erro && (
+          <div className="account-error-banner" role="alert">
+            <strong>Não foi possível carregar os clientes.</strong>
+            <span>{erro}</span>
+          </div>
+        )}
 
         <div className="admin-table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
+                <th>Código</th>
                 <th>Nome</th>
+                <th>CPF</th>
                 <th>E-mail</th>
                 <th>Telefone</th>
                 <th>Status</th>
@@ -52,12 +90,14 @@ export default function AdminClientesPage() {
             <tbody>
               {clientesFiltrados.map((cliente) => (
                 <tr key={cliente.id}>
+                  <td>{cliente.codigoCliente}</td>
                   <td>{cliente.nome}</td>
+                  <td>{formatarCpf(cliente.cpf)}</td>
                   <td>{cliente.email}</td>
-                  <td>{cliente.telefone}</td>
+                  <td>({cliente.ddd}) {cliente.telefoneNumero}</td>
                   <td>
-                    <span className={`admin-status admin-status-${cliente.status.toLowerCase()}`}>
-                      {cliente.status}
+                    <span className={`admin-status admin-status-${cliente.ativo ? 'ativo' : 'inativo'}`}>
+                      {cliente.ativo ? 'Ativo' : 'Inativo'}
                     </span>
                   </td>
                   <td>
@@ -68,13 +108,27 @@ export default function AdminClientesPage() {
                     >
                       Ver detalhes
                     </button>
+                    <button
+                      className="admin-action-button"
+                      type="button"
+                      onClick={() => navigate(`/admin/clientes/editar/${cliente.id}`)}
+                    >
+                      Editar
+                    </button>
                   </td>
                 </tr>
               ))}
-              {clientesFiltrados.length === 0 && (
+              {!carregando && clientesFiltrados.length === 0 && (
                 <tr>
-                  <td className="admin-table-empty" colSpan={5}>
+                  <td className="admin-table-empty" colSpan={7}>
                     Nenhum cliente encontrado.
+                  </td>
+                </tr>
+              )}
+              {carregando && (
+                <tr>
+                  <td className="admin-table-empty" colSpan={7}>
+                    Carregando clientes...
                   </td>
                 </tr>
               )}
@@ -100,11 +154,12 @@ export default function AdminClientesPage() {
             </button>
           </div>
           <dl className="admin-detail-grid">
+            <div><dt>Código</dt><dd>{clienteSelecionado.codigoCliente}</dd></div>
+            <div><dt>CPF</dt><dd>{formatarCpf(clienteSelecionado.cpf)}</dd></div>
             <div><dt>E-mail</dt><dd>{clienteSelecionado.email}</dd></div>
-            <div><dt>Telefone</dt><dd>{clienteSelecionado.telefone}</dd></div>
-            <div><dt>Status</dt><dd>{clienteSelecionado.status}</dd></div>
-            <div><dt>Cidade</dt><dd>{clienteSelecionado.cidade}</dd></div>
-            <div><dt>Pedidos realizados</dt><dd>{clienteSelecionado.pedidos}</dd></div>
+            <div><dt>Telefone</dt><dd>({clienteSelecionado.ddd}) {clienteSelecionado.telefoneNumero}</dd></div>
+            <div><dt>Status</dt><dd>{clienteSelecionado.ativo ? 'Ativo' : 'Inativo'}</dd></div>
+            <div><dt>Cidade</dt><dd>{clienteSelecionado.endereco.cidade}</dd></div>
           </dl>
           </aside>
         )}

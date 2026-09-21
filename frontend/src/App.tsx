@@ -9,6 +9,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AdminLayout } from './components/AdminLayout'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminClientesPage from './pages/AdminClientesPage'
+import ConsultaClientesPage from './pages/ConsultaClientesPage'
+import EditarClientePage from './pages/EditarClientePage'
 import AdminPedidosPage from './pages/AdminPedidosPage'
 import ClientAccountPage from './pages/ClientAccountPage'
 import CheckoutReviewPage from './pages/CheckoutReviewPage'
@@ -47,6 +49,22 @@ function App() {
       element={
         <AdminLayout>
           <AdminClientesPage />
+        </AdminLayout>
+      }
+    />
+    <Route
+      path="/admin/clientes/consulta"
+      element={
+        <AdminLayout>
+          <ConsultaClientesPage />
+        </AdminLayout>
+      }
+    />
+    <Route
+      path="/admin/clientes/editar/:id"
+      element={
+        <AdminLayout>
+          <EditarClientePage />
         </AdminLayout>
       }
     />
