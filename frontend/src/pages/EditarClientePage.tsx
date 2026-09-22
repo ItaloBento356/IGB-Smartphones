@@ -916,6 +916,75 @@ const cancelarEdicaoEnderecoEntrega = () => {
           )}
         </fieldset>
 
+          <fieldset className="account-form-section">
+  <legend>Cartões de crédito</legend>
+
+  {carregandoCartoes && (
+    <p className="cartoes-status">Carregando cartões...</p>
+  )}
+
+  {erroCartoes && (
+    <div className="account-error-banner" role="alert">
+      {erroCartoes}
+    </div>
+  )}
+
+  {!carregandoCartoes && !erroCartoes && cartoes.length === 0 && (
+    <p className="cartoes-status">
+      Nenhum cartão de crédito cadastrado.
+    </p>
+  )}
+
+  {!carregandoCartoes && cartoes.length > 0 && (
+    <div className="cartoes-lista">
+      {cartoes.map((cartao) => (
+        <article
+          key={cartao.id}
+          className={`cartao-item ${
+            cartao.preferencial ? 'cartao-item-preferencial' : ''
+          }`}
+        >
+          <div className="cartao-cabecalho">
+            <strong className="cartao-bandeira">
+              {cartao.bandeiraNome}
+            </strong>
+
+            {cartao.preferencial && (
+              <span className="cartao-preferencial">
+                Preferencial
+              </span>
+            )}
+          </div>
+
+          <div className="cartao-numero">
+            <span>••••</span>
+            <span>••••</span>
+            <span>••••</span>
+            <strong>{cartao.ultimos4}</strong>
+          </div>
+
+          <div className="cartao-rodape">
+            <div>
+              <span className="cartao-label">Nome impresso</span>
+              <strong>{cartao.nomeImpresso}</strong>
+            </div>
+
+            {!cartao.preferencial && (
+              <button
+                type="button"
+                className="cartao-botao-preferencial"
+                onClick={() => tornarCartaoPreferencial(cartao.id)}
+              >
+                Tornar preferencial
+              </button>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  )}
+</fieldset>
+
         {erroEnvio && (
           <div className="account-error-banner" role="alert">
             <strong>Não foi possível salvar as alterações.</strong>

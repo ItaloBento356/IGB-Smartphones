@@ -162,7 +162,20 @@ export default function RegisterPage() {
         email: dados.email.trim(),
         senha: dados.senha,
         confirmacaoSenha: dados.confirmacaoSenha,
-        endereco: {
+        enderecoCobranca: {
+          tipoResidencia: dados.tipoResidencia,
+          tipoLogradouro: dados.tipoLogradouro,
+          logradouro: dados.logradouro.trim(),
+          numero: dados.numero.trim(),
+          bairro: dados.bairro.trim(),
+          cep: apenasNumeros(dados.cep),
+          cidade: dados.cidade.trim(),
+          estado: dados.estado.trim().toUpperCase(),
+          pais: dados.pais.trim(),
+          observacoes: dados.observacoes.trim() || undefined,
+        },
+        enderecoEntrega: {
+          nome: 'Principal',
           tipoResidencia: dados.tipoResidencia,
           tipoLogradouro: dados.tipoLogradouro,
           logradouro: dados.logradouro.trim(),
