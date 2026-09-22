@@ -13,6 +13,10 @@ export interface EnderecoCadastro {
   observacoes?: string
 }
 
+export interface EnderecoEntregaCadastro extends EnderecoCadastro {
+  nome: string
+}
+
 export interface ClienteCadastro {
   nome: string
   genero: string
@@ -24,7 +28,8 @@ export interface ClienteCadastro {
   email: string
   senha: string
   confirmacaoSenha: string
-  endereco: EnderecoCadastro
+  enderecoCobranca: EnderecoCadastro
+  enderecoEntrega: EnderecoEntregaCadastro
 }
 
 // Erro de cadastro que carrega os campos em conflito retornados pela API (ex.: CPF e/ou e-mail duplicados).
@@ -76,6 +81,8 @@ export async function cadastrarCliente(dados: ClienteCadastro): Promise<void> {
 }
 
 export interface EnderecoCliente {
+  id: number
+  nome?: string | null
   tipoResidencia: string
   tipoLogradouro: string
   logradouro: string
@@ -85,7 +92,24 @@ export interface EnderecoCliente {
   cidade: string
   estado: string
   pais: string
-  observacoes?: string
+  observacoes?: string | null
+}
+
+export interface CartaoCliente {
+  id: number
+  ultimos4: string
+  nomeImpresso: string
+  bandeiraId: number
+  bandeiraNome: string
+  preferencial: boolean
+}
+
+export interface CadastrarCartaoRequest {
+  numero: string
+  nomeImpresso: string
+  bandeiraId: number
+  codigoSeguranca: string
+  preferencial: boolean
 }
 
 export interface ClienteConsulta {
@@ -100,7 +124,8 @@ export interface ClienteConsulta {
   telefoneNumero: string
   email: string
   ativo: boolean
-  endereco: EnderecoCliente
+  enderecoCobranca: EnderecoCliente
+  enderecosEntrega: EnderecoCliente[]
 }
 
 export interface FiltrosConsultaClientes {
@@ -159,7 +184,7 @@ export interface AtualizarClienteRequest {
   ddd: string
   telefoneNumero: string
   email: string
-  endereco: EnderecoCliente
+  enderecoCobranca: EnderecoCadastro
 }
 
 // Erro de atualização que carrega os campos em conflito retornados pela API (ex.: CPF e/ou e-mail duplicados).
@@ -207,4 +232,111 @@ export async function inativarCliente(id: number): Promise<ClienteConsulta> {
   }
 
   return (await response.json()) as ClienteConsulta
+}
+
+export async function adicionarEnderecoEntrega(clienteId: number, dados: EnderecoEntregaCadastro): Promise<ClienteConsulta> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/clientes/${clienteId}/enderecos-entrega`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados),
+    })
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.')
+  }
+
+  if (!response.ok) {
+    const { mensagem } = await extrairDetalhesErro(response)
+    throw new Error(mensagem)
+  }
+
+  return (await response.json()) as ClienteConsulta
+}
+
+export async function atualizarEnderecoEntrega(
+  clienteId: number,
+  enderecoId: number,
+  dados: EnderecoEntregaCadastro,
+): Promise<ClienteConsulta> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/clientes/${clienteId}/enderecos-entrega/${enderecoId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados),
+    })
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.')
+  }
+
+  if (!response.ok) {
+    const { mensagem } = await extrairDetalhesErro(response)
+    throw new Error(mensagem)
+  }
+
+  return (await response.json()) as ClienteConsulta
+}
+export async function listarCartoes(clienteId: number): Promise<CartaoCliente[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/clientes/${clienteId}/cartoes`,
+  )
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => null)
+
+    throw new Error(
+      erro?.mensagem ?? 'Não foi possível carregar os cartões.',
+    )
+  }
+
+  return response.json()
+}
+
+export async function adicionarCartao(
+  clienteId: number,
+  dados: CadastrarCartaoRequest,
+): Promise<CartaoCliente> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/clientes/${clienteId}/cartoes`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dados),
+    },
+  )
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => null)
+
+    throw new Error(
+      erro?.mensagem ?? 'Não foi possível cadastrar o cartão.',
+    )
+  }
+
+  return response.json()
+}
+
+export async function definirCartaoComoPreferencial(
+  clienteId: number,
+  cartaoId: number,
+): Promise<CartaoCliente> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/clientes/${clienteId}/cartoes/${cartaoId}/preferencial`,
+    {
+      method: 'PATCH',
+    },
+  )
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => null)
+
+    throw new Error(
+      erro?.mensagem ?? 'Não foi possível definir o cartão como preferencial.',
+    )
+  }
+
+  return response.json()
 }

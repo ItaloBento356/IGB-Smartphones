@@ -39,22 +39,6 @@ public class ClienteService : IClienteService
         if (cpfDuplicado || emailDuplicado)
             throw CriarExcecaoDeConflito(cpfDuplicado, emailDuplicado);
 
-        var endereco = new Endereco
-        {
-            TipoResidencia = request.Endereco.TipoResidencia.Trim(),
-            TipoLogradouro = request.Endereco.TipoLogradouro.Trim(),
-            Logradouro = request.Endereco.Logradouro.Trim(),
-            Numero = request.Endereco.Numero.Trim(),
-            Bairro = request.Endereco.Bairro.Trim(),
-            CEP = SomenteDigitos(request.Endereco.CEP),
-            Cidade = request.Endereco.Cidade.Trim(),
-            Estado = request.Endereco.Estado.Trim().ToUpperInvariant(),
-            Pais = request.Endereco.Pais.Trim(),
-            Observacoes = string.IsNullOrWhiteSpace(request.Endereco.Observacoes)
-                ? null
-                : request.Endereco.Observacoes.Trim(),
-        };
-
         var cliente = new Cliente
         {
             // Placeholder único e temporário (20 caracteres): o CodigoCliente definitivo só pode ser
@@ -69,14 +53,16 @@ public class ClienteService : IClienteService
             TelefoneNumero = SomenteDigitos(request.TelefoneNumero),
             Email = email,
             Ativo = true,
-            Endereco = endereco,
+            EnderecoCobranca = CriarEndereco(request.EnderecoCobranca),
         };
+        // Endereço de entrega inicial (RN0022): adicionado à coleção para que o EF resolva o ClienteId no insert.
+        cliente.EnderecosEntrega.Add(CriarEnderecoEntrega(request.EnderecoEntrega));
+
         cliente.PasswordHash = _passwordHasher.HashPassword(cliente, request.Senha);
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            _context.Enderecos.Add(endereco);
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
@@ -97,7 +83,9 @@ public class ClienteService : IClienteService
 
     public async Task<IReadOnlyList<ClienteResponse>> ConsultarAsync(string? codigo, string? nome, string? cpf, string? email)
     {
-        IQueryable<Cliente> query = _context.Clientes.Include(c => c.Endereco);
+        IQueryable<Cliente> query = _context.Clientes
+            .Include(c => c.EnderecoCobranca)
+            .Include(c => c.EnderecosEntrega);
 
         if (!string.IsNullOrWhiteSpace(codigo))
         {
@@ -132,7 +120,7 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse> ObterPorIdAsync(int id)
     {
-        var cliente = await _context.Clientes.Include(c => c.Endereco).FirstOrDefaultAsync(c => c.Id == id);
+        var cliente = await BuscarClienteCompletoAsync(id);
         if (cliente is null)
             throw new ClienteNaoEncontradoException($"Cliente com Id {id} não encontrado.");
 
@@ -141,7 +129,7 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse> AtualizarAsync(int id, AtualizarClienteRequest request)
     {
-        var cliente = await _context.Clientes.Include(c => c.Endereco).FirstOrDefaultAsync(c => c.Id == id);
+        var cliente = await BuscarClienteCompletoAsync(id);
         if (cliente is null)
             throw new ClienteNaoEncontradoException($"Cliente com Id {id} não encontrado.");
 
@@ -167,22 +155,11 @@ public class ClienteService : IClienteService
         cliente.TelefoneNumero = SomenteDigitos(request.TelefoneNumero);
         cliente.Email = email;
 
-        cliente.Endereco.TipoResidencia = request.Endereco.TipoResidencia.Trim();
-        cliente.Endereco.TipoLogradouro = request.Endereco.TipoLogradouro.Trim();
-        cliente.Endereco.Logradouro = request.Endereco.Logradouro.Trim();
-        cliente.Endereco.Numero = request.Endereco.Numero.Trim();
-        cliente.Endereco.Bairro = request.Endereco.Bairro.Trim();
-        cliente.Endereco.CEP = SomenteDigitos(request.Endereco.CEP);
-        cliente.Endereco.Cidade = request.Endereco.Cidade.Trim();
-        cliente.Endereco.Estado = request.Endereco.Estado.Trim().ToUpperInvariant();
-        cliente.Endereco.Pais = request.Endereco.Pais.Trim();
-        cliente.Endereco.Observacoes = string.IsNullOrWhiteSpace(request.Endereco.Observacoes)
-            ? null
-            : request.Endereco.Observacoes.Trim();
+        // Apenas o endereço de cobrança é alterado aqui; os endereços de entrega têm endpoints próprios (RNF0034).
+        PreencherEndereco(cliente.EnderecoCobranca, request.EnderecoCobranca);
 
         try
         {
-            // Cliente e Endereco são atualizados num único SaveChangesAsync, já executado em transação implícita do EF Core.
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } postgresException)
@@ -195,7 +172,7 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse> InativarAsync(int id)
     {
-        var cliente = await _context.Clientes.Include(c => c.Endereco).FirstOrDefaultAsync(c => c.Id == id);
+        var cliente = await BuscarClienteCompletoAsync(id);
         if (cliente is null)
             throw new ClienteNaoEncontradoException($"Cliente com Id {id} não encontrado.");
 
@@ -207,6 +184,41 @@ public class ClienteService : IClienteService
 
         return MapearParaResponse(cliente);
     }
+
+    public async Task<ClienteResponse> AdicionarEnderecoEntregaAsync(int clienteId, EnderecoEntregaRequest request)
+    {
+        var cliente = await BuscarClienteCompletoAsync(clienteId);
+        if (cliente is null)
+            throw new ClienteNaoEncontradoException($"Cliente com Id {clienteId} não encontrado.");
+
+        cliente.EnderecosEntrega.Add(CriarEnderecoEntrega(request));
+        await _context.SaveChangesAsync();
+
+        return MapearParaResponse(cliente);
+    }
+
+    public async Task<ClienteResponse> AtualizarEnderecoEntregaAsync(int clienteId, int enderecoId, EnderecoEntregaRequest request)
+    {
+        var cliente = await BuscarClienteCompletoAsync(clienteId);
+        if (cliente is null)
+            throw new ClienteNaoEncontradoException($"Cliente com Id {clienteId} não encontrado.");
+
+        var endereco = cliente.EnderecosEntrega.FirstOrDefault(e => e.Id == enderecoId);
+        if (endereco is null)
+            throw new ClienteNaoEncontradoException($"Endereço de entrega com Id {enderecoId} não encontrado para este cliente.");
+
+        PreencherEndereco(endereco, request);
+        endereco.Nome = request.Nome.Trim();
+        await _context.SaveChangesAsync();
+
+        return MapearParaResponse(cliente);
+    }
+
+    private Task<Cliente?> BuscarClienteCompletoAsync(int id) =>
+        _context.Clientes
+            .Include(c => c.EnderecoCobranca)
+            .Include(c => c.EnderecosEntrega)
+            .FirstOrDefaultAsync(c => c.Id == id);
 
     // Determina, pela constraint violada, se o conflito foi de CPF, e-mail ou ambos (condição de corrida).
     private static ClienteConflitoException CriarExcecaoDeConflito(PostgresException ex)
@@ -257,6 +269,34 @@ public class ClienteService : IClienteService
             throw new ClienteValidacaoException("A senha deve conter ao menos um caractere especial.");
     }
 
+    private static void PreencherEndereco(Endereco endereco, EnderecoRequest request)
+    {
+        endereco.TipoResidencia = request.TipoResidencia.Trim();
+        endereco.TipoLogradouro = request.TipoLogradouro.Trim();
+        endereco.Logradouro = request.Logradouro.Trim();
+        endereco.Numero = request.Numero.Trim();
+        endereco.Bairro = request.Bairro.Trim();
+        endereco.CEP = SomenteDigitos(request.CEP);
+        endereco.Cidade = request.Cidade.Trim();
+        endereco.Estado = request.Estado.Trim().ToUpperInvariant();
+        endereco.Pais = request.Pais.Trim();
+        endereco.Observacoes = string.IsNullOrWhiteSpace(request.Observacoes) ? null : request.Observacoes.Trim();
+    }
+
+    private static Endereco CriarEndereco(EnderecoRequest request)
+    {
+        var endereco = new Endereco();
+        PreencherEndereco(endereco, request);
+        return endereco;
+    }
+
+    private static Endereco CriarEnderecoEntrega(EnderecoEntregaRequest request)
+    {
+        var endereco = CriarEndereco(request);
+        endereco.Nome = request.Nome.Trim();
+        return endereco;
+    }
+
     private static ClienteResponse MapearParaResponse(Cliente cliente) => new(
         cliente.Id,
         cliente.CodigoCliente,
@@ -269,15 +309,21 @@ public class ClienteService : IClienteService
         cliente.TelefoneNumero,
         cliente.Email,
         cliente.Ativo,
-        new EnderecoResponse(
-            cliente.Endereco.TipoResidencia,
-            cliente.Endereco.TipoLogradouro,
-            cliente.Endereco.Logradouro,
-            cliente.Endereco.Numero,
-            cliente.Endereco.Bairro,
-            cliente.Endereco.CEP,
-            cliente.Endereco.Cidade,
-            cliente.Endereco.Estado,
-            cliente.Endereco.Pais,
-            cliente.Endereco.Observacoes));
+        MapearEndereco(cliente.EnderecoCobranca),
+        cliente.EnderecosEntrega.Select(MapearEndereco).ToList());
+
+    private static EnderecoResponse MapearEndereco(Endereco endereco) => new(
+        endereco.Id,
+        endereco.Nome,
+        endereco.TipoResidencia,
+        endereco.TipoLogradouro,
+        endereco.Logradouro,
+        endereco.Numero,
+        endereco.Bairro,
+        endereco.CEP,
+        endereco.Cidade,
+        endereco.Estado,
+        endereco.Pais,
+        endereco.Observacoes);
 }
+

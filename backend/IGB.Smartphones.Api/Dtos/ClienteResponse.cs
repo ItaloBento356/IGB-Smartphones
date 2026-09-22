@@ -12,4 +12,5 @@ public record ClienteResponse(
     string TelefoneNumero,
     string Email,
     bool Ativo,
-    EnderecoResponse Endereco);
+    EnderecoResponse EnderecoCobranca,
+    IReadOnlyList<EnderecoResponse> EnderecosEntrega);

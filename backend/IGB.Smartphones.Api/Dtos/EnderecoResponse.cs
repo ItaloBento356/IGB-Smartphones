@@ -1,6 +1,8 @@
 namespace IGB.Smartphones.Api.Dtos;
 
 public record EnderecoResponse(
+    int Id,
+    string? Nome,
     string TipoResidencia,
     string TipoLogradouro,
     string Logradouro,

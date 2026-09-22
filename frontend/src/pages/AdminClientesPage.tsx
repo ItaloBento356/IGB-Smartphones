@@ -159,7 +159,7 @@ export default function AdminClientesPage() {
             <div><dt>E-mail</dt><dd>{clienteSelecionado.email}</dd></div>
             <div><dt>Telefone</dt><dd>({clienteSelecionado.ddd}) {clienteSelecionado.telefoneNumero}</dd></div>
             <div><dt>Status</dt><dd>{clienteSelecionado.ativo ? 'Ativo' : 'Inativo'}</dd></div>
-            <div><dt>Cidade</dt><dd>{clienteSelecionado.endereco.cidade}</dd></div>
+            <div><dt>Cidade</dt><dd>{clienteSelecionado.enderecoCobranca.cidade}</dd></div>
           </dl>
           </aside>
         )}

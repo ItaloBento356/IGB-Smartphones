@@ -37,6 +37,6 @@ public class AtualizarClienteRequest
     [MaxLength(150)]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "O endereço é obrigatório.")]
-    public EnderecoRequest Endereco { get; set; } = new();
+    [Required(ErrorMessage = "O endereço de cobrança é obrigatório.")]
+    public EnderecoRequest EnderecoCobranca { get; set; } = new();
 }

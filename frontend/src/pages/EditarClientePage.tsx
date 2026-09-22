@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { atualizarCliente, obterClientePorId, ErroAtualizacaoCliente } from '../data/clienteApi'
+import {
+  atualizarCliente,
+  obterClientePorId,
+  adicionarEnderecoEntrega,
+  atualizarEnderecoEntrega,
+  listarCartoes,
+  definirCartaoComoPreferencial,
+  ErroAtualizacaoCliente,
+  type EnderecoCliente,
+  type CartaoCliente,
+} from '../data/clienteApi'
 import { apenasNumeros, EMAIL_REGEX, formatarCep, formatarCpf } from '../utils/formatadores'
 
 interface FormularioEdicao {
@@ -45,7 +55,33 @@ const FORMULARIO_VAZIO: FormularioEdicao = {
   pais: '',
   observacoes: '',
 }
+interface FormularioEnderecoEntrega {
+  nome: string
+  tipoResidencia: string
+  tipoLogradouro: string
+  logradouro: string
+  numero: string
+  bairro: string
+  cep: string
+  cidade: string
+  estado: string
+  pais: string
+  observacoes: string
+}
 
+const ENDERECO_ENTREGA_VAZIO: FormularioEnderecoEntrega = {
+  nome: '',
+  tipoResidencia: '',
+  tipoLogradouro: '',
+  logradouro: '',
+  numero: '',
+  bairro: '',
+  cep: '',
+  cidade: '',
+  estado: '',
+  pais: '',
+  observacoes: '',
+}
 type ErrosFormulario = Partial<Record<keyof FormularioEdicao, string>>
 
 function validarFormulario(dados: FormularioEdicao): ErrosFormulario {
@@ -79,7 +115,6 @@ function validarFormulario(dados: FormularioEdicao): ErrosFormulario {
 export default function EditarClientePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState('')
   const [codigoCliente, setCodigoCliente] = useState('')
@@ -87,45 +122,230 @@ export default function EditarClientePage() {
   const [erros, setErros] = useState<ErrosFormulario>({})
   const [erroEnvio, setErroEnvio] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [cartoes, setCartoes] = useState<CartaoCliente[]>([])
+  const [carregandoCartoes, setCarregandoCartoes] = useState(false)
+  const [erroCartoes, setErroCartoes] = useState('')
+  const [enderecosEntrega, setEnderecosEntrega] = useState<EnderecoCliente[]>([])
+  const [formularioEnderecoEntrega, setFormularioEnderecoEntrega] =
+    useState<FormularioEnderecoEntrega>(ENDERECO_ENTREGA_VAZIO)
+  const [editandoEnderecoEntrega, setEditandoEnderecoEntrega] = useState<number | null>(null)
+  const [adicionandoEnderecoEntrega, setAdicionandoEnderecoEntrega] = useState(false)
+  const [salvandoEnderecoEntrega, setSalvandoEnderecoEntrega] = useState(false)
+  const [erroEnderecoEntrega, setErroEnderecoEntrega] = useState('')
 
   useEffect(() => {
-    if (!id) return
+  if (!id) return
 
-    setCarregando(true)
-    setErroCarregamento('')
+  setCarregando(true)
+  setErroCarregamento('')
+  setCarregandoCartoes(true)
+  setErroCartoes('')
 
-    obterClientePorId(Number(id))
-      .then((cliente) => {
-        setCodigoCliente(cliente.codigoCliente)
-        setDados({
-          nome: cliente.nome,
-          genero: cliente.genero,
-          dataNascimento: cliente.dataNascimento,
-          cpf: formatarCpf(cliente.cpf),
-          telefoneTipo: cliente.telefoneTipo,
-          ddd: cliente.ddd,
-          telefoneNumero: cliente.telefoneNumero,
-          email: cliente.email,
-          tipoResidencia: cliente.endereco.tipoResidencia,
-          tipoLogradouro: cliente.endereco.tipoLogradouro,
-          logradouro: cliente.endereco.logradouro,
-          numero: cliente.endereco.numero,
-          bairro: cliente.endereco.bairro,
-          cep: formatarCep(cliente.endereco.cep),
-          cidade: cliente.endereco.cidade,
-          estado: cliente.endereco.estado,
-          pais: cliente.endereco.pais,
-          observacoes: cliente.endereco.observacoes ?? '',
-        })
+  obterClientePorId(Number(id))
+    .then(async (cliente) => {
+      setCodigoCliente(cliente.codigoCliente)
+      setEnderecosEntrega(cliente.enderecosEntrega)
+
+      setDados({
+        nome: cliente.nome,
+        genero: cliente.genero,
+        dataNascimento: cliente.dataNascimento,
+        cpf: formatarCpf(cliente.cpf),
+        telefoneTipo: cliente.telefoneTipo,
+        ddd: cliente.ddd,
+        telefoneNumero: cliente.telefoneNumero,
+        email: cliente.email,
+        tipoResidencia: cliente.enderecoCobranca.tipoResidencia,
+        tipoLogradouro: cliente.enderecoCobranca.tipoLogradouro,
+        logradouro: cliente.enderecoCobranca.logradouro,
+        numero: cliente.enderecoCobranca.numero,
+        bairro: cliente.enderecoCobranca.bairro,
+        cep: formatarCep(cliente.enderecoCobranca.cep),
+        cidade: cliente.enderecoCobranca.cidade,
+        estado: cliente.enderecoCobranca.estado,
+        pais: cliente.enderecoCobranca.pais,
+        observacoes: cliente.enderecoCobranca.observacoes ?? '',
       })
-      .catch((erro) => {
-        setErroCarregamento(erro instanceof Error ? erro.message : 'Não foi possível carregar o cliente.')
-      })
-      .finally(() => setCarregando(false))
-  }, [id])
+
+      try {
+        const cartoesCliente = await listarCartoes(Number(id))
+        setCartoes(cartoesCliente)
+      } catch (erro) {
+        setErroCartoes(
+          erro instanceof Error
+            ? erro.message
+            : 'Não foi possível carregar os cartões.',
+        )
+      } finally {
+        setCarregandoCartoes(false)
+      }
+    })
+    .catch((erro) => {
+      setErroCarregamento(
+        erro instanceof Error
+          ? erro.message
+          : 'Não foi possível carregar o cliente.',
+      )
+      setCarregandoCartoes(false)
+    })
+    .finally(() => setCarregando(false))
+}, [id])
+
 
   const atualizarCampo = <K extends keyof FormularioEdicao>(campo: K, valor: string) => {
     setDados((atual) => ({ ...atual, [campo]: valor }))
+  }
+
+
+const atualizarCampoEnderecoEntrega = <K extends keyof FormularioEnderecoEntrega>(
+  campo: K,
+  valor: string,
+) => {
+  setFormularioEnderecoEntrega((atual) => ({
+    ...atual,
+    [campo]: valor,
+  }))
+}
+
+const iniciarNovoEnderecoEntrega = () => {
+  setFormularioEnderecoEntrega(ENDERECO_ENTREGA_VAZIO)
+  setEditandoEnderecoEntrega(null)
+  setAdicionandoEnderecoEntrega(true)
+  setErroEnderecoEntrega('')
+}
+
+const iniciarEdicaoEnderecoEntrega = (endereco: EnderecoCliente) => {
+  setFormularioEnderecoEntrega({
+    nome: endereco.nome ?? '',
+    tipoResidencia: endereco.tipoResidencia,
+    tipoLogradouro: endereco.tipoLogradouro,
+    logradouro: endereco.logradouro,
+    numero: endereco.numero,
+    bairro: endereco.bairro,
+    cep: formatarCep(endereco.cep),
+    cidade: endereco.cidade,
+    estado: endereco.estado,
+    pais: endereco.pais,
+    observacoes: endereco.observacoes ?? '',
+  })
+
+  setEditandoEnderecoEntrega(endereco.id)
+  setAdicionandoEnderecoEntrega(false)
+  setErroEnderecoEntrega('')
+}
+
+const cancelarEdicaoEnderecoEntrega = () => {
+  setEditandoEnderecoEntrega(null)
+  setAdicionandoEnderecoEntrega(false)
+  setFormularioEnderecoEntrega(ENDERECO_ENTREGA_VAZIO)
+  setErroEnderecoEntrega('')
+}
+  const salvarEnderecoEntrega = async () => {
+  if (!id) return
+
+  setErroEnderecoEntrega('')
+
+  if (!formularioEnderecoEntrega.nome.trim()) {
+    setErroEnderecoEntrega('Informe uma identificação para o endereço.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.tipoResidencia) {
+    setErroEnderecoEntrega('Selecione o tipo de residência.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.tipoLogradouro) {
+    setErroEnderecoEntrega('Selecione o tipo de logradouro.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.logradouro.trim()) {
+    setErroEnderecoEntrega('Informe o logradouro.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.numero.trim()) {
+    setErroEnderecoEntrega('Informe o número.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.bairro.trim()) {
+    setErroEnderecoEntrega('Informe o bairro.')
+    return
+  }
+
+  if (apenasNumeros(formularioEnderecoEntrega.cep).length !== 8) {
+    setErroEnderecoEntrega('Informe um CEP válido com 8 dígitos.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.cidade.trim()) {
+    setErroEnderecoEntrega('Informe a cidade.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.estado.trim()) {
+    setErroEnderecoEntrega('Informe o estado.')
+    return
+  }
+
+  if (!formularioEnderecoEntrega.pais.trim()) {
+    setErroEnderecoEntrega('Informe o país.')
+    return
+  }
+
+  setSalvandoEnderecoEntrega(true)
+
+  const dados = {
+    nome: formularioEnderecoEntrega.nome.trim(),
+    tipoResidencia: formularioEnderecoEntrega.tipoResidencia,
+    tipoLogradouro: formularioEnderecoEntrega.tipoLogradouro,
+    logradouro: formularioEnderecoEntrega.logradouro.trim(),
+    numero: formularioEnderecoEntrega.numero.trim(),
+    bairro: formularioEnderecoEntrega.bairro.trim(),
+    cep: apenasNumeros(formularioEnderecoEntrega.cep),
+    cidade: formularioEnderecoEntrega.cidade.trim(),
+    estado: formularioEnderecoEntrega.estado.trim().toUpperCase(),
+    pais: formularioEnderecoEntrega.pais.trim(),
+    observacoes: formularioEnderecoEntrega.observacoes.trim() || undefined,
+  }
+
+  try {
+    const clienteAtualizado = editandoEnderecoEntrega
+      ? await atualizarEnderecoEntrega(Number(id), editandoEnderecoEntrega, dados)
+      : await adicionarEnderecoEntrega(Number(id), dados)
+
+    setEnderecosEntrega(clienteAtualizado.enderecosEntrega)
+    cancelarEdicaoEnderecoEntrega()
+  } catch (erro) {
+    setErroEnderecoEntrega(
+      erro instanceof Error
+        ? erro.message
+        : 'Não foi possível salvar o endereço de entrega.',
+    )
+  } finally {
+    setSalvandoEnderecoEntrega(false)
+  }
+}
+
+  const tornarCartaoPreferencial = async (cartaoId: number) => {
+    if (!id) return
+
+    setErroCartoes('')
+
+    try {
+      await definirCartaoComoPreferencial(Number(id), cartaoId)
+
+      const cartoesAtualizados = await listarCartoes(Number(id))
+      setCartoes(cartoesAtualizados)
+    } catch (erro) {
+      setErroCartoes(
+        erro instanceof Error
+          ? erro.message
+          : 'Não foi possível definir o cartão como preferencial.',
+      )
+    }
   }
 
   const salvar = async (event: FormEvent<HTMLFormElement>) => {
@@ -148,7 +368,7 @@ export default function EditarClientePage() {
         ddd: apenasNumeros(dados.ddd),
         telefoneNumero: apenasNumeros(dados.telefoneNumero),
         email: dados.email.trim(),
-        endereco: {
+        enderecoCobranca: {
           tipoResidencia: dados.tipoResidencia,
           tipoLogradouro: dados.tipoLogradouro,
           logradouro: dados.logradouro.trim(),
@@ -338,7 +558,7 @@ export default function EditarClientePage() {
         </fieldset>
 
         <fieldset className="account-form-section">
-          <legend>Endereço residencial</legend>
+          <legend>Endereço de cobrança</legend>
           <div className="account-fields">
             <label htmlFor="campo-tipo-residencia">
               Tipo de residência
@@ -467,6 +687,233 @@ export default function EditarClientePage() {
               />
             </label>
           </div>
+        </fieldset>
+                <fieldset className="account-form-section">
+          <legend>Endereços de entrega</legend>
+
+          {enderecosEntrega.length === 0 && !adicionandoEnderecoEntrega && (
+            <p>Nenhum endereço de entrega cadastrado.</p>
+          )}
+
+          {enderecosEntrega.map((endereco) => (
+            <div key={endereco.id} className="admin-detail-panel">
+              <div className="admin-detail-heading">
+                <div>
+                  <strong>{endereco.nome}</strong>
+                  <p>
+                    {endereco.tipoLogradouro} {endereco.logradouro}, {endereco.numero}
+                    {' — '}
+                    {endereco.bairro}, {endereco.cidade} - {endereco.estado}
+                  </p>
+                </div>
+
+                <button
+                  className="admin-action-button"
+                  type="button"
+                  onClick={() => iniciarEdicaoEnderecoEntrega(endereco)}
+                >
+                  Editar
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {(adicionandoEnderecoEntrega || editandoEnderecoEntrega !== null) && (
+            <div className="account-form-section">
+              <h3>
+                {editandoEnderecoEntrega !== null
+                  ? 'Editar endereço de entrega'
+                  : 'Novo endereço de entrega'}
+              </h3>
+
+              <div className="account-fields">
+                <label htmlFor="entrega-nome">
+                  Identificação
+                  <input
+                    id="entrega-nome"
+                    value={formularioEnderecoEntrega.nome}
+                    placeholder="Ex.: Casa, Trabalho"
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('nome', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-tipo-residencia">
+                  Tipo de residência
+                  <select
+                    id="entrega-tipo-residencia"
+                    value={formularioEnderecoEntrega.tipoResidencia}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('tipoResidencia', event.target.value)
+                    }
+                  >
+                    <option value="">Selecione</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Apartamento">Apartamento</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </label>
+
+                <label htmlFor="entrega-tipo-logradouro">
+                  Tipo de logradouro
+                  <select
+                    id="entrega-tipo-logradouro"
+                    value={formularioEnderecoEntrega.tipoLogradouro}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('tipoLogradouro', event.target.value)
+                    }
+                  >
+                    <option value="">Selecione</option>
+                    <option value="Rua">Rua</option>
+                    <option value="Avenida">Avenida</option>
+                    <option value="Alameda">Alameda</option>
+                    <option value="Travessa">Travessa</option>
+                    <option value="Rodovia">Rodovia</option>
+                    <option value="Praça">Praça</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </label>
+
+                <label htmlFor="entrega-logradouro">
+                  Logradouro
+                  <input
+                    id="entrega-logradouro"
+                    value={formularioEnderecoEntrega.logradouro}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('logradouro', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-numero">
+                  Número
+                  <input
+                    id="entrega-numero"
+                    value={formularioEnderecoEntrega.numero}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('numero', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-bairro">
+                  Bairro
+                  <input
+                    id="entrega-bairro"
+                    value={formularioEnderecoEntrega.bairro}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('bairro', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-cep">
+                  CEP
+                  <input
+                    id="entrega-cep"
+                    inputMode="numeric"
+                    placeholder="00000-000"
+                    value={formularioEnderecoEntrega.cep}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega(
+                        'cep',
+                        formatarCep(event.target.value),
+                      )
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-cidade">
+                  Cidade
+                  <input
+                    id="entrega-cidade"
+                    value={formularioEnderecoEntrega.cidade}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('cidade', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-estado">
+                  Estado (UF)
+                  <input
+                    id="entrega-estado"
+                    maxLength={2}
+                    value={formularioEnderecoEntrega.estado}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega(
+                        'estado',
+                        event.target.value.toUpperCase(),
+                      )
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-pais">
+                  País
+                  <input
+                    id="entrega-pais"
+                    value={formularioEnderecoEntrega.pais}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega('pais', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label htmlFor="entrega-observacoes">
+                  Observações (opcional)
+                  <textarea
+                    id="entrega-observacoes"
+                    rows={2}
+                    value={formularioEnderecoEntrega.observacoes}
+                    onChange={(event) =>
+                      atualizarCampoEnderecoEntrega(
+                        'observacoes',
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+              </div>
+
+              {erroEnderecoEntrega && (
+                <div className="account-error-banner" role="alert">
+                  {erroEnderecoEntrega}
+                </div>
+              )}
+
+              <div className="admin-filtros-acoes">
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={salvarEnderecoEntrega}
+                  disabled={salvandoEnderecoEntrega}
+                >
+                  {salvandoEnderecoEntrega ? 'Salvando...' : 'Salvar endereço'}
+                </button>
+
+                <button
+                  className="admin-action-button"
+                  type="button"
+                  onClick={cancelarEdicaoEnderecoEntrega}
+                  disabled={salvandoEnderecoEntrega}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!adicionandoEnderecoEntrega && editandoEnderecoEntrega === null && (
+            <button
+              className="admin-action-button"
+              type="button"
+              onClick={iniciarNovoEnderecoEntrega}
+            >
+              + Adicionar endereço de entrega
+            </button>
+          )}
         </fieldset>
 
         {erroEnvio && (

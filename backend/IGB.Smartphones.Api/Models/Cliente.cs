@@ -48,9 +48,13 @@ public class Cliente
 
     public bool Ativo { get; set; } = true;
 
-    // Endereço residencial obrigatório do cliente.
+    // Endereço de cobrança obrigatório do cliente (RN0021).
     [Required]
-    public int EnderecoId { get; set; }
+    public int EnderecoCobrancaId { get; set; }
 
-    public Endereco Endereco { get; set; } = null!;
+    public Endereco EnderecoCobranca { get; set; } = null!;
+
+    // Endereços de entrega do cliente (RN0022: ao menos um; RF0026: podem ser vários).
+    public ICollection<Endereco> EnderecosEntrega { get; set; } = new List<Endereco>();
+    public ICollection<CartaoCredito> Cartoes { get; set; } = new List<CartaoCredito>();
 }

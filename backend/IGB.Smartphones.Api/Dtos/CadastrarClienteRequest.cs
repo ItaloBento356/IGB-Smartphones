@@ -42,6 +42,9 @@ public class CadastrarClienteRequest
     [Required(ErrorMessage = "A confirmação de senha é obrigatória.")]
     public string ConfirmacaoSenha { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "O endereço é obrigatório.")]
-    public EnderecoRequest Endereco { get; set; } = new();
+    [Required(ErrorMessage = "O endereço de cobrança é obrigatório.")]
+    public EnderecoRequest EnderecoCobranca { get; set; } = new();
+
+    [Required(ErrorMessage = "O endereço de entrega é obrigatório.")]
+    public EnderecoEntregaRequest EnderecoEntrega { get; set; } = new();
 }

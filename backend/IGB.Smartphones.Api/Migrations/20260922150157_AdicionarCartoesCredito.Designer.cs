@@ -3,6 +3,7 @@ using System;
 using IGB.Smartphones.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IGB.Smartphones.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922150157_AdicionarCartoesCredito")]
+    partial class AdicionarCartoesCredito
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,23 +44,6 @@ namespace IGB.Smartphones.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Bandeira");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nome = "Visa"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nome = "Mastercard"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nome = "Elo"
-                        });
                 });
 
             modelBuilder.Entity("IGB.Smartphones.Api.Models.CartaoCredito", b =>

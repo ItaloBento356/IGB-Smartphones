@@ -107,6 +107,40 @@ public class ClientesController : ControllerBase
         }
     }
 
+    [HttpPost("{id:int}/enderecos-entrega")]
+    [ProducesResponseType(typeof(ClienteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AdicionarEnderecoEntrega(int id, [FromBody] EnderecoEntregaRequest request)
+    {
+        try
+        {
+            var cliente = await _clienteService.AdicionarEnderecoEntregaAsync(id, request);
+            return Ok(cliente);
+        }
+        catch (ClienteNaoEncontradoException ex)
+        {
+            return Problem(title: "Cliente não encontrado.", detail: ex.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+    }
+
+    [HttpPut("{id:int}/enderecos-entrega/{enderecoId:int}")]
+    [ProducesResponseType(typeof(ClienteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AtualizarEnderecoEntrega(int id, int enderecoId, [FromBody] EnderecoEntregaRequest request)
+    {
+        try
+        {
+            var cliente = await _clienteService.AtualizarEnderecoEntregaAsync(id, enderecoId, request);
+            return Ok(cliente);
+        }
+        catch (ClienteNaoEncontradoException ex)
+        {
+            return Problem(title: "Não encontrado.", detail: ex.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+    }
+
     private IActionResult CriarRespostaConflito(ClienteConflitoException ex)
     {
         var problemDetails = new ProblemDetails

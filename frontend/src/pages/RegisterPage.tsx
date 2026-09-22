@@ -25,6 +25,18 @@ interface FormularioCadastro {
   estado: string
   pais: string
   observacoes: string
+  entregaIgualCobranca: boolean
+  entregaNome: string
+  entregaTipoResidencia: string
+  entregaTipoLogradouro: string
+  entregaLogradouro: string
+  entregaNumero: string
+  entregaBairro: string
+  entregaCep: string
+  entregaCidade: string
+  entregaEstado: string
+  entregaPais: string
+  entregaObservacoes: string
 }
 
 const FORMULARIO_INICIAL: FormularioCadastro = {
@@ -48,6 +60,18 @@ const FORMULARIO_INICIAL: FormularioCadastro = {
   estado: '',
   pais: 'Brasil',
   observacoes: '',
+  entregaIgualCobranca: true,
+  entregaNome: '',
+  entregaTipoResidencia: '',
+  entregaTipoLogradouro: '',
+  entregaLogradouro: '',
+  entregaNumero: '',
+  entregaBairro: '',
+  entregaCep: '',
+  entregaCidade: '',
+  entregaEstado: '',
+  entregaPais: 'Brasil',
+  entregaObservacoes: '',
 }
 
 type ErrosFormulario = Partial<Record<keyof FormularioCadastro, string>>
@@ -87,6 +111,20 @@ function validarFormulario(dados: FormularioCadastro): ErrosFormulario {
   if (!dados.cidade.trim()) erros.cidade = 'Informe a cidade.'
   if (!dados.estado.trim()) erros.estado = 'Informe o estado.'
   if (!dados.pais.trim()) erros.pais = 'Informe o país.'
+
+  if (!dados.entregaNome.trim()) erros.entregaNome = 'Informe uma identificação para o endereço de entrega.'
+
+  if (!dados.entregaIgualCobranca) {
+    if (!dados.entregaTipoResidencia) erros.entregaTipoResidencia = 'Selecione o tipo de residência.'
+    if (!dados.entregaTipoLogradouro) erros.entregaTipoLogradouro = 'Selecione o tipo de logradouro.'
+    if (!dados.entregaLogradouro.trim()) erros.entregaLogradouro = 'Informe o logradouro.'
+    if (!dados.entregaNumero.trim()) erros.entregaNumero = 'Informe o número.'
+    if (!dados.entregaBairro.trim()) erros.entregaBairro = 'Informe o bairro.'
+    if (apenasNumeros(dados.entregaCep).length !== 8) erros.entregaCep = 'Informe um CEP válido com 8 dígitos.'
+    if (!dados.entregaCidade.trim()) erros.entregaCidade = 'Informe a cidade.'
+    if (!dados.entregaEstado.trim()) erros.entregaEstado = 'Informe o estado.'
+    if (!dados.entregaPais.trim()) erros.entregaPais = 'Informe o país.'
+  }
 
   return erros
 }

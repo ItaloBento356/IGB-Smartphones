@@ -7,6 +7,13 @@ public class Endereco
     [Key]
     public int Id { get; set; }
 
+    // Identificação curta (ex.: "Casa", "Trabalho"); obrigatória apenas para endereços de entrega.
+    [MaxLength(50)]
+    public string? Nome { get; set; }
+
+    // Preenchido apenas quando este endereço é um endereço de entrega de um cliente.
+    public int? ClienteId { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string TipoResidencia { get; set; } = string.Empty;

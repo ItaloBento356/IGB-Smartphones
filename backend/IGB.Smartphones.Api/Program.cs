@@ -18,6 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddSingleton<PasswordHasher<Cliente>>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<ICartaoService, CartaoService>();
 
 builder.Services.AddCors(options =>
 {

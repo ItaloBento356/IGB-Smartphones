@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IGB.Smartphones.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f86fd500f010fe350a0df57b8bd1f4e59edbe6a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bdaf6c31a8084b42af126f24255ee053848ab603")]
 [assembly: System.Reflection.AssemblyProductAttribute("IGB.Smartphones.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IGB.Smartphones.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

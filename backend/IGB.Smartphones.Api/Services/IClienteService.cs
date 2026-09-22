@@ -13,4 +13,8 @@ public interface IClienteService
     Task<ClienteResponse> AtualizarAsync(int id, AtualizarClienteRequest request);
 
     Task<ClienteResponse> InativarAsync(int id);
+
+    Task<ClienteResponse> AdicionarEnderecoEntregaAsync(int clienteId, EnderecoEntregaRequest request);
+
+    Task<ClienteResponse> AtualizarEnderecoEntregaAsync(int clienteId, int enderecoId, EnderecoEntregaRequest request);
 }

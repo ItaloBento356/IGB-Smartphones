@@ -3,6 +3,7 @@ using System;
 using IGB.Smartphones.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IGB.Smartphones.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922115515_EnderecoCobrancaEEntrega")]
+    partial class EnderecoCobrancaEEntrega
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,85 +24,6 @@ namespace IGB.Smartphones.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("IGB.Smartphones.Api.Models.Bandeira", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nome")
-                        .IsUnique();
-
-                    b.ToTable("Bandeira");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nome = "Visa"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nome = "Mastercard"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nome = "Elo"
-                        });
-                });
-
-            modelBuilder.Entity("IGB.Smartphones.Api.Models.CartaoCredito", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BandeiraId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("CodigoSeguranca")
-                        .IsRequired()
-                        .HasMaxLength(4)
-                        .HasColumnType("character varying(4)");
-
-                    b.Property<string>("NomeImpresso")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
-
-                    b.Property<bool>("Preferencial")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BandeiraId");
-
-                    b.HasIndex("ClienteId");
-
-                    b.ToTable("CartaoCredito");
-                });
 
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Cliente", b =>
                 {
@@ -250,25 +174,6 @@ namespace IGB.Smartphones.Api.Migrations
                     b.ToTable("Enderecos");
                 });
 
-            modelBuilder.Entity("IGB.Smartphones.Api.Models.CartaoCredito", b =>
-                {
-                    b.HasOne("IGB.Smartphones.Api.Models.Bandeira", "Bandeira")
-                        .WithMany("Cartoes")
-                        .HasForeignKey("BandeiraId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("IGB.Smartphones.Api.Models.Cliente", "Cliente")
-                        .WithMany("Cartoes")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Bandeira");
-
-                    b.Navigation("Cliente");
-                });
-
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Cliente", b =>
                 {
                     b.HasOne("IGB.Smartphones.Api.Models.Endereco", "EnderecoCobranca")
@@ -284,18 +189,12 @@ namespace IGB.Smartphones.Api.Migrations
                 {
                     b.HasOne("IGB.Smartphones.Api.Models.Cliente", null)
                         .WithMany("EnderecosEntrega")
-                        .HasForeignKey("ClienteId");
-                });
-
-            modelBuilder.Entity("IGB.Smartphones.Api.Models.Bandeira", b =>
-                {
-                    b.Navigation("Cartoes");
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Cliente", b =>
                 {
-                    b.Navigation("Cartoes");
-
                     b.Navigation("EnderecosEntrega");
                 });
 #pragma warning restore 612, 618
