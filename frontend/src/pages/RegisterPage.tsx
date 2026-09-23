@@ -112,7 +112,6 @@ function validarFormulario(dados: FormularioCadastro): ErrosFormulario {
   if (!dados.estado.trim()) erros.estado = 'Informe o estado.'
   if (!dados.pais.trim()) erros.pais = 'Informe o país.'
 
-  if (!dados.entregaNome.trim()) erros.entregaNome = 'Informe uma identificação para o endereço de entrega.'
 
   if (!dados.entregaIgualCobranca) {
     if (!dados.entregaTipoResidencia) erros.entregaTipoResidencia = 'Selecione o tipo de residência.'

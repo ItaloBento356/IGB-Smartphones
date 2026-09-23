@@ -201,9 +201,24 @@ export const adicionarCliente = (cliente: Omit<Cliente, 'id' | 'pedidos'>) => {
   return novoCliente
 }
 
-export const obterClienteAutenticado = () => {
-  const clienteId = Number(localStorage.getItem(SESSAO_STORAGE_KEY))
-  return Number.isInteger(clienteId) ? obterClientes().find((cliente) => cliente.id === clienteId) : undefined
+export const obterClienteAutenticado = (): Cliente | undefined => {
+  const dadosSessao = localStorage.getItem(SESSAO_STORAGE_KEY)
+
+  if (!dadosSessao) {
+    return undefined
+  }
+
+  try {
+    const cliente = JSON.parse(dadosSessao) as Cliente
+
+    if (!Number.isInteger(cliente.id)) {
+      return undefined
+    }
+
+    return cliente
+  } catch {
+    return undefined
+  }
 }
 
 export const autenticarCliente = (email: string, senha: string) => {

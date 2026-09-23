@@ -340,3 +340,42 @@ export async function definirCartaoComoPreferencial(
 
   return response.json()
 }
+export interface LoginResponse {
+  id: number
+  codigoCliente: string
+  nome: string
+  email: string
+}
+export async function autenticarCliente(
+  email: string,
+  senha: string
+): Promise<LoginResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      senha,
+    }),
+  })
+
+  if (!response.ok) {
+    let mensagem = 'E-mail ou senha inválidos.'
+
+    try {
+      const erro = await response.json()
+
+      if (erro.mensagem) {
+        mensagem = erro.mensagem
+      }
+    } catch {
+      // Mantém a mensagem padrão.
+    }
+
+    throw new Error(mensagem)
+  }
+
+  return response.json()
+}

@@ -36,16 +36,28 @@ export default function AdminClientesPage() {
   }, [])
 
   const clientesFiltrados = useMemo(() => {
-    const termo = busca.trim().toLowerCase()
+  const termo = busca.trim().toLowerCase()
 
-    if (!termo) return clientes
+  if (!termo) return clientes
 
-    return clientes.filter((cliente) =>
-      [cliente.nome, cliente.email, cliente.telefoneNumero, cliente.cpf, cliente.codigoCliente].some((campo) =>
-        campo.toLowerCase().includes(termo),
-      ),
+  const termoNormalizado = termo.replace(/\D/g, '')
+
+  return clientes.filter((cliente) => {
+    const nome = cliente.nome.toLowerCase()
+    const email = cliente.email.toLowerCase()
+    const telefone = cliente.telefoneNumero.replace(/\D/g, '')
+    const cpf = cliente.cpf.replace(/\D/g, '')
+    const codigo = cliente.codigoCliente.toLowerCase()
+
+    return (
+      nome.includes(termo) ||
+      email.includes(termo) ||
+      telefone.includes(termoNormalizado) ||
+      cpf.includes(termoNormalizado) ||
+      codigo.includes(termo)
     )
-  }, [busca, clientes])
+  })
+}, [busca, clientes])
 
   return (
     <section className="admin-clientes">

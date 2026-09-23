@@ -633,3 +633,99 @@ a { color: inherit; text-decoration: none; }
 .coupon-card button { align-self: flex-start; margin-top: auto; padding-top: 0.8rem; }
 @media (max-width: 760px) { .nav { top: 137px; justify-content: flex-start; padding-inline: 1rem; } }
 @media (max-width: 520px) { .coupon-list { grid-template-columns: 1fr; } .recommendation-chat { bottom: 0.75rem; right: 0.75rem; } }
+/* =========================
+   CARTÕES DO CLIENTE
+   ========================= */
+
+.account-card-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.account-card-item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e4e9e2;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+}
+
+.account-card-info {
+  align-items: center;
+  display: flex;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.account-card-brand {
+  align-items: center;
+  background: #f1f4ef;
+  border-radius: 10px;
+  display: flex;
+  flex-shrink: 0;
+  height: 46px;
+  justify-content: center;
+  width: 58px;
+}
+
+.account-card-brand strong {
+  color: #17212b;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.account-card-details {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.account-card-details strong {
+  color: #17212b;
+  font-size: 0.9rem;
+}
+
+.account-card-details span {
+  color: #77838a;
+  font-size: 0.78rem;
+}
+
+.account-card-preferred {
+  background: #dce9dd;
+  border-radius: 999px;
+  color: #26733c;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+}
+
+.account-card-action {
+  background: #f1f4ef;
+  border: 0;
+  border-radius: 8px;
+  color: #17212b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+}
+
+.account-card-action:hover {
+  background: #dce9dd;
+}
+
+@media (max-width: 600px) {
+  .account-card-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .account-card-info {
+    width: 100%;
+  }
+
+  .account-card-action {
+    width: 100%;
+  }
+}

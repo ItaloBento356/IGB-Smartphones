@@ -17,4 +17,6 @@ public interface IClienteService
     Task<ClienteResponse> AdicionarEnderecoEntregaAsync(int clienteId, EnderecoEntregaRequest request);
 
     Task<ClienteResponse> AtualizarEnderecoEntregaAsync(int clienteId, int enderecoId, EnderecoEntregaRequest request);
+
+    Task<LoginResponse> AutenticarAsync(string email, string senha);
 }

@@ -936,51 +936,30 @@ const cancelarEdicaoEnderecoEntrega = () => {
   )}
 
   {!carregandoCartoes && cartoes.length > 0 && (
-    <div className="cartoes-lista">
-      {cartoes.map((cartao) => (
-        <article
-          key={cartao.id}
-          className={`cartao-item ${
-            cartao.preferencial ? 'cartao-item-preferencial' : ''
-          }`}
-        >
-          <div className="cartao-cabecalho">
-            <strong className="cartao-bandeira">
-              {cartao.bandeiraNome}
-            </strong>
+    <div className="account-card-list">
+  {cartoes.map((cartao) => (
+    <article key={cartao.id} className="account-card-item">
+      <div className="account-card-info">
+        <div className="account-card-brand">
+          <strong>{cartao.bandeiraNome}</strong>
+        </div>
 
-            {cartao.preferencial && (
-              <span className="cartao-preferencial">
-                Preferencial
-              </span>
-            )}
-          </div>
+        <div className="account-card-details">
+          <strong>
+            •••• •••• •••• {cartao.ultimos4}
+          </strong>
 
-          <div className="cartao-numero">
-            <span>••••</span>
-            <span>••••</span>
-            <span>••••</span>
-            <strong>{cartao.ultimos4}</strong>
-          </div>
+          <span>{cartao.nomeImpresso}</span>
 
-          <div className="cartao-rodape">
-            <div>
-              <span className="cartao-label">Nome impresso</span>
-              <strong>{cartao.nomeImpresso}</strong>
-            </div>
-
-            {!cartao.preferencial && (
-              <button
-                type="button"
-                className="cartao-botao-preferencial"
-                onClick={() => tornarCartaoPreferencial(cartao.id)}
-              >
-                Tornar preferencial
-              </button>
-            )}
-          </div>
-        </article>
-      ))}
+          {cartao.preferencial && (
+            <span className="account-card-preferred">
+              Preferencial
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  ))}
     </div>
   )}
 </fieldset>
