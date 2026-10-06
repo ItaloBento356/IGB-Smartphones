@@ -295,4 +295,27 @@ describe('Criação de pedidos pelo checkout', () => {
       })
     })
   })
+
+  it('TESTE 8 — cancela pedido em Meus pedidos e mantém CANCELADO após recarregar', () => {
+    criarCliente().then((cliente) => {
+      adicionarCartao(cliente.id, '4111111111111111')
+      prepararCheckout(cliente)
+      continuarAoPagamento()
+      cy.get('.card-option').first().click()
+      abrirRevisao()
+      finalizarPedido(cliente.id).then((order) => {
+        cy.visit('/meus-pedidos')
+        cy.contains('.order-card', `Pedido #${order.id}`).as('pedido')
+        cy.get('@pedido').contains('EM PROCESSAMENTO').should('be.visible')
+
+        cy.on('window:confirm', () => true)
+        cy.get('@pedido').contains('button', 'Cancelar pedido').click()
+        cy.get('@pedido').contains('.admin-status', 'CANCELADO').should('be.visible')
+
+        cy.reload()
+        cy.contains('.order-card', `Pedido #${order.id}`)
+          .contains('.admin-status', 'CANCELADO').should('be.visible')
+      })
+    })
+  })
 })

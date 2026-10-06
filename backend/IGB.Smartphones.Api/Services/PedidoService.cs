@@ -51,6 +51,25 @@ public class PedidoService : IPedidoService
         return pedido is null ? null : MapearParaResponse(pedido);
     }
 
+    public async Task<PedidoResponse?> CancelarAsync(int id, CancellationToken cancellationToken)
+    {
+        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        if (pedido is null)
+            return null;
+
+        // Único status cancelável hoje; os demais estados da interface ainda não existem no backend.
+        if (pedido.Status != StatusPedido.EmProcessamento)
+            throw new InvalidOperationException("O pedido não está em um estado que permite cancelamento.");
+
+        pedido.Status = StatusPedido.Cancelado;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Pedido {PedidoId} cancelado.", pedido.Id);
+
+        return await ObterPorIdAsync(id, cancellationToken);
+    }
+
     public async Task<CotacaoFreteResponse> CalcularFreteAsync(
         CotacaoFreteRequest request,
         CancellationToken cancellationToken)
@@ -386,7 +405,12 @@ public class PedidoService : IPedidoService
             p.Codigo,
             p.ClienteId,
             p.DataCriacao,
-            p.Status == StatusPedido.EmProcessamento ? "EM PROCESSAMENTO" : p.Status.ToString(),
+            p.Status switch
+            {
+                StatusPedido.EmProcessamento => "EM PROCESSAMENTO",
+                StatusPedido.Cancelado => "CANCELADO",
+                _ => p.Status.ToString()
+            },
             p.Subtotal,
             p.ValorFrete,
             p.ValorDesconto,

@@ -2,5 +2,6 @@
 
 public enum StatusPedido
 {
-    EmProcessamento = 1
+    EmProcessamento = 1,
+    Cancelado = 2
 }

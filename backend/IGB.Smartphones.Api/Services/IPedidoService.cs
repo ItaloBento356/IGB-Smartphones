@@ -8,6 +8,8 @@ public interface IPedidoService
 
     Task<PedidoResponse?> ObterPorIdAsync(int id, CancellationToken cancellationToken);
 
+    Task<PedidoResponse?> CancelarAsync(int id, CancellationToken cancellationToken);
+
     Task<CotacaoFreteResponse> CalcularFreteAsync(
         CotacaoFreteRequest request,
         CancellationToken cancellationToken);

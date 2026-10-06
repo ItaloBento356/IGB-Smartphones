@@ -38,6 +38,27 @@ public class PedidosController : ControllerBase
         return Ok(pedido);
     }
 
+    [HttpPatch("{id:int}/cancelar")]
+    [ProducesResponseType(typeof(PedidoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Cancelar(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var pedido = await _pedidoService.CancelarAsync(id, cancellationToken);
+
+            if (pedido is null)
+                return Problem(title: "Pedido não encontrado.", detail: "Pedido não encontrado.", statusCode: StatusCodes.Status404NotFound);
+
+            return Ok(pedido);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(title: "Pedido não pode ser cancelado.", detail: ex.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+    }
+
     [HttpPost("calcular-frete")]
     [ProducesResponseType(typeof(CotacaoFreteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

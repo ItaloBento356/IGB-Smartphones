@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { atualizarPedido, obterClienteAutenticado, type ItemPedido, type Pedido, type TrocaPedido } from '../data/adminData'
-import { listarPedidosCliente, type PedidoCriado } from '../data/pedidoApi'
+import { listarPedidosCliente, cancelarPedido, type PedidoCriado } from '../data/pedidoApi'
 
 const formatPrice = (price: number) => price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const exchangeReasons = ['Produto com defeito', 'Produto incorreto', 'Produto danificado', 'Tamanho/modelo incorreto', 'Outro']
@@ -62,13 +62,17 @@ export default function MyOrdersPage() {
 
   if (!cliente) return null
 
-  const cancelOrder = (orderId: number) => {
+  const cancelOrder = async (orderId: number) => {
     if (!window.confirm('Deseja cancelar este pedido?')) return
     const order = orders.find((current) => current.id === orderId)
     if (!order || !['EM ABERTO', 'EM PROCESSAMENTO', 'PAGAMENTO REALIZADO', 'EM TRÂNSITO'].includes(order.status)) return
-    const hasPayment = ['PAGAMENTO REALIZADO', 'EM TRÂNSITO'].includes(order.status) && Boolean(order.pagamentos?.length)
-    atualizarPedido(orderId, { status: 'CANCELADO', ...(hasPayment ? { statusPagamento: 'ESTORNO_PENDENTE' as const } : {}) })
-    setFeedback((current) => ({ ...current, [orderId]: hasPayment ? 'Pedido cancelado. O estorno do pagamento está pendente.' : 'Pedido cancelado com sucesso.' }))
+    try {
+      const pedidoAtualizado = mapearPedido(await cancelarPedido(orderId))
+      setOrders((current) => current.map((item) => item.id === orderId ? pedidoAtualizado : item))
+      setFeedback((current) => ({ ...current, [orderId]: 'Pedido cancelado com sucesso.' }))
+    } catch (erro: unknown) {
+      setFeedback((current) => ({ ...current, [orderId]: erro instanceof Error ? erro.message : 'Não foi possível cancelar o pedido.' }))
+    }
   }
 
   const confirmReceipt = (orderId: number) => {

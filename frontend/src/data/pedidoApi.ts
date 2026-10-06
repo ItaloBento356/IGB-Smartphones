@@ -108,6 +108,9 @@ export const obterPedidoPorId = (id: number) => enviar<PedidoCriado>(`/api/pedid
 export const listarPedidosCliente = (clienteId: number) =>
   enviar<PedidoCriado[]>(`/api/pedidos?clienteId=${encodeURIComponent(clienteId)}`)
 
+export const cancelarPedido = (id: number) =>
+  enviar<PedidoCriado>(`/api/pedidos/${id}/cancelar`, { method: 'PATCH' })
+
 export const mapearPagamentoSalvo = (cartao: CartaoCliente, valor: number): PagamentoPedidoRequest => ({
   cartaoCreditoId: cartao.id,
   valor,
