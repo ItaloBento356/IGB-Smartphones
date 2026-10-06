@@ -1,4 +1,4 @@
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
 import { Header } from '../components/Header'
 import { ProductCard } from '../components/ProductCard'
 import { Link } from 'react-router-dom'
@@ -28,6 +28,7 @@ const marcas = [
 ]
 
 export default function HomePage() {
+    const { products, loading, error } = useProducts()
     const ofertas = coupons.filter((coupon) => coupon.discountPercent || coupon.discountFixed)
 
     return (
@@ -88,6 +89,9 @@ export default function HomePage() {
                         <h2>Em destaque</h2>
                         <Link to="/catalogo">Ver catálogo →</Link>
                     </div>
+
+                    {loading && <p role="status">Carregando produtos...</p>}
+                    {error && <p role="alert">{error}</p>}
 
                     <div className="product-grid">
                         {products.slice(0, 4).map((product) => (

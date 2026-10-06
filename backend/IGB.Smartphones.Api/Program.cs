@@ -19,6 +19,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddSingleton<PasswordHasher<Cliente>>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<ICartaoService, CartaoService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<ICupomService, CupomService>();
 
 builder.Services.AddCors(options =>
 {
@@ -30,6 +33,42 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+if (app.Environment.IsEnvironment("Testing") &&
+    builder.Configuration.GetValue<bool>("CypressTestFixtures:Enabled"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var codigosFixture = new[] { "CYPRESS-UNDER-10", "CYPRESS-OVER-10000" };
+    var existentes = await context.Cupons
+        .Where(cupom => codigosFixture.Contains(cupom.Codigo))
+        .Select(cupom => cupom.Codigo)
+        .ToListAsync();
+
+    if (!existentes.Contains("CYPRESS-UNDER-10"))
+    {
+        context.Cupons.Add(new Cupom
+        {
+            Codigo = "CYPRESS-UNDER-10",
+            Natureza = NaturezaCupom.Promocional,
+            FormaDesconto = FormaDescontoCupom.ValorFixo,
+            Valor = 1608.90m,
+        });
+    }
+
+    if (!existentes.Contains("CYPRESS-OVER-10000"))
+    {
+        context.Cupons.Add(new Cupom
+        {
+            Codigo = "CYPRESS-OVER-10000",
+            Natureza = NaturezaCupom.Promocional,
+            FormaDesconto = FormaDescontoCupom.ValorFixo,
+            Valor = 10000m,
+        });
+    }
+
+    await context.SaveChangesAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

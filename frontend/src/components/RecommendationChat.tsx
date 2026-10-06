@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
+import type { Product } from '../types/product'
 
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
@@ -9,7 +10,7 @@ const converterValor = (valor: string) => {
   return Number.parseFloat(textoLimpo) || 0
 }
 
-const interpretarMensagem = (mensagem: string) => {
+const interpretarMensagem = (mensagem: string, products: Product[]) => {
   const texto = normalizar(mensagem.trim())
 
   if (!texto) {
@@ -71,10 +72,11 @@ const interpretarMensagem = (mensagem: string) => {
 }
 
 export function RecommendationChat() {
+  const { products } = useProducts()
   const [aberto, setAberto] = useState(false)
   const [mensagem, setMensagem] = useState('')
   const [resposta, setResposta] = useState('Posso ajudar com smartphones, preços e marcas da loja. O que você procura?')
-  const [recomendados, setRecomendados] = useState<typeof products>([])
+  const [recomendados, setRecomendados] = useState<Product[]>([])
 
   const enviar = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -83,7 +85,7 @@ export function RecommendationChat() {
       return
     }
 
-    const interpretacao = interpretarMensagem(mensagem)
+    const interpretacao = interpretarMensagem(mensagem, products)
 
     if (interpretacao.tipo === 'vazio') {
       return

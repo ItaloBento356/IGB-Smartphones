@@ -1,11 +1,12 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/ProductCard'
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
 import { Header } from '../components/Header'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 
 export default function CatalogPage() {
   const [searchParams] = useSearchParams()
+  const { products, loading, error } = useProducts()
   const marca = searchParams.get('marca')
   const busca = searchParams.get('busca')?.trim().toLowerCase() ?? ''
 
@@ -39,7 +40,10 @@ export default function CatalogPage() {
             ))}
           </div>
 
-          {searchedProducts.length === 0 && (
+          {loading && <p className="catalog-empty" role="status">Carregando produtos...</p>}
+          {error && <p className="catalog-empty" role="alert">{error}</p>}
+
+          {!loading && !error && searchedProducts.length === 0 && (
             <p className="catalog-empty">Nenhum produto encontrado para essa busca.</p>
           )}
         </section>

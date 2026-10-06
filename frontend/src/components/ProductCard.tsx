@@ -2,7 +2,7 @@ import type { Product } from '../types/product'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCartItemCount, useCart } from '../data/cart'
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
 
 type ProductCardProps = {
   product: Product
@@ -12,6 +12,7 @@ type ProductCardProps = {
 export function ProductCard({ product, showBadge = false }: ProductCardProps) {
   const [adicionado, setAdicionado] = useState(false)
   const { cart, addToCart } = useCart()
+  const { products } = useProducts()
 
   const itemNoCarrinho = cart.find((item) => item.productId === product.id)
   const quantidadeCarrinho = getCartItemCount(cart)
@@ -23,8 +24,7 @@ export function ProductCard({ product, showBadge = false }: ProductCardProps) {
   }, 0)
 
   const adicionar = () => {
-    addToCart(product.id)
-    setAdicionado(true)
+    if (addToCart(product.id, 1, product.stock)) setAdicionado(true)
   }
 
   return (
@@ -59,8 +59,8 @@ export function ProductCard({ product, showBadge = false }: ProductCardProps) {
             })}
           </span>
 
-          <button className="add-button" type="button" onClick={adicionar}>
-            Adicionar ao carrinho
+          <button className="add-button" type="button" disabled={product.stock < 1 || (itemNoCarrinho?.quantity ?? 0) >= product.stock} onClick={adicionar}>
+            {product.stock < 1 ? 'Indisponível' : 'Adicionar ao carrinho'}
           </button>
         </div>
 

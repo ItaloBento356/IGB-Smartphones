@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
 import { useState } from 'react'
 import { addToCart } from '../data/cart'
 import { Header } from '../components/Header'
@@ -7,17 +7,26 @@ import { Breadcrumbs } from '../components/Breadcrumbs'
 
 export default function ProductPage() {
   const { id } = useParams()
+  const { products, loading, error } = useProducts()
   const product = products.find((item) => item.id === Number(id))
   const [adicionado, setAdicionado] = useState(false)
+  const [quantidade, setQuantidade] = useState(1)
+  const [cartMessage, setCartMessage] = useState('')
 
   const adicionar = () => {
     if (!product) return
 
-    addToCart(product.id)
+    if (!addToCart(product.id, quantidade, product.stock)) {
+      setCartMessage('A quantidade solicitada excede o estoque disponível.')
+      return
+    }
+    setCartMessage('')
     setAdicionado(true)
 
     window.setTimeout(() => setAdicionado(false), 1600)
   }
+
+  if (loading) return <div className="site-shell"><Header /><main className="container"><section className="section"><p role="status">Carregando produto...</p></section></main></div>
 
   if (!product) {
     return (
@@ -26,7 +35,7 @@ export default function ProductPage() {
 
         <main className="container">
           <section className="section">
-            <h1>Produto não encontrado</h1>
+            <h1>{error || 'Produto não encontrado'}</h1>
             <Link to="/catalogo">Voltar para catálogo</Link>
           </section>
         </main>
@@ -92,15 +101,41 @@ export default function ProductPage() {
                 </div>
               </div>
 
+              <label className="product-quantity">
+                Quantidade
+                <input
+                  aria-label="Quantidade"
+                  type="number"
+                  min={1}
+                  max={product.stock}
+                  step={1}
+                  value={quantidade}
+                  disabled={product.stock < 1}
+                  onChange={(event) => {
+                    const valor = Number(event.target.value)
+                    if (Number.isInteger(valor) && valor >= 1 && valor <= product.stock) {
+                      setQuantidade(valor)
+                      setCartMessage('')
+                    }
+                  }}
+                />
+                <span>{product.stock > 0 ? `${product.stock} em estoque` : 'Indisponível'}</span>
+              </label>
+
               <button
                 className="product-buy-button"
                 type="button"
+                disabled={product.stock < 1 || quantidade > product.stock}
                 onClick={adicionar}
               >
-                {adicionado
+                {product.stock < 1
+                  ? 'Indisponível'
+                  : adicionado
                   ? 'Produto adicionado ao carrinho'
                   : 'Adicionar ao carrinho'}
               </button>
+
+              {cartMessage && <p className="account-error" role="alert">{cartMessage}</p>}
 
               {adicionado && (
                 <Link className="product-cart-link" to="/carrinho">

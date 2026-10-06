@@ -14,7 +14,16 @@ const CART_CHANGE_EVENT = 'igb-cart-change'
 export const notifyCartChanged = () => window.dispatchEvent(new Event(CART_CHANGE_EVENT))
 
 const getCartStorageKey = () => {
-  const clientId = Number(localStorage.getItem(SESSION_STORAGE_KEY))
+  const session = localStorage.getItem(SESSION_STORAGE_KEY)
+  let clientId = Number(session)
+  if (!Number.isInteger(clientId) || clientId <= 0) {
+    try {
+      const parsedSession = JSON.parse(session ?? '{}') as { id?: unknown }
+      clientId = Number(parsedSession.id)
+    } catch {
+      clientId = 0
+    }
+  }
   return Number.isInteger(clientId) && clientId > 0
     ? `${CLIENT_CART_STORAGE_PREFIX}${clientId}`
     : GUEST_CART_STORAGE_KEY
@@ -63,26 +72,32 @@ export const mergeGuestCartIntoClient = (clientId: number) => {
   notifyCartChanged()
 }
 
-export const addToCart = (productId: number) => {
+export const addToCart = (productId: number, quantity: number, stock: number) => {
+  if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isInteger(stock) || stock <= 0) return false
+
   const cart = readCart()
   const existingItem = cart.find((item) => item.productId === productId)
+  const nextQuantity = (existingItem?.quantity ?? 0) + quantity
+  if (nextQuantity > stock) return false
 
   if (existingItem) {
-    existingItem.quantity += 1
+    existingItem.quantity = nextQuantity
   } else {
-    cart.push({ productId, quantity: 1 })
+    cart.push({ productId, quantity })
   }
 
   publishCart(cart)
+  return true
 }
 
-export const updateCartQuantity = (productId: number, quantity: number) => {
+export const updateCartQuantity = (productId: number, quantity: number, stock: number) => {
   const cart = readCart()
   const item = cart.find((cartItem) => cartItem.productId === productId)
-  if (!item) return
+  if (!item || !Number.isInteger(quantity) || quantity < 1 || quantity > stock) return false
 
-  item.quantity = Math.max(1, quantity)
+  item.quantity = quantity
   publishCart(cart)
+  return true
 }
 
 export const removeFromCart = (productId: number) => {

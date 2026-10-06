@@ -7,7 +7,6 @@ import {
   adicionarEnderecoEntrega,
   atualizarEnderecoEntrega,
   listarCartoes,
-  definirCartaoComoPreferencial,
   ErroAtualizacaoCliente,
   type EnderecoCliente,
   type CartaoCliente,
@@ -328,25 +327,6 @@ const cancelarEdicaoEnderecoEntrega = () => {
     setSalvandoEnderecoEntrega(false)
   }
 }
-
-  const tornarCartaoPreferencial = async (cartaoId: number) => {
-    if (!id) return
-
-    setErroCartoes('')
-
-    try {
-      await definirCartaoComoPreferencial(Number(id), cartaoId)
-
-      const cartoesAtualizados = await listarCartoes(Number(id))
-      setCartoes(cartoesAtualizados)
-    } catch (erro) {
-      setErroCartoes(
-        erro instanceof Error
-          ? erro.message
-          : 'Não foi possível definir o cartão como preferencial.',
-      )
-    }
-  }
 
   const salvar = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

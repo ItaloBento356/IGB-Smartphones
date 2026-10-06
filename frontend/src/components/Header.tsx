@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { encerrarSessao, obterClienteAutenticado } from '../data/adminData'
 import { getCartItemCount, useCart } from '../data/cart'
 import logoIgb from '../assets/logo-igb.png'
-import { products } from '../data/products'
+import { useProducts } from '../data/productApi'
 import { RecommendationChat } from './RecommendationChat'
 
 export function Header() {
@@ -14,6 +14,7 @@ export function Header() {
   const [buscaAtiva, setBuscaAtiva] = useState(false)
   const searchRef = useRef<HTMLFormElement>(null)
   const { cart } = useCart()
+  const { products } = useProducts()
 
   const resultados = busca.trim()
     ? [...new Map(

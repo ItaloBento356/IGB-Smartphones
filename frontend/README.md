@@ -1,75 +1,26 @@
-# React + TypeScript + Vite
+# IGB Smartphones — Front-end
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Testes do checkout
 
-Currently, two official plugins are available:
+Os sete cenários de criação de pedidos estão em `cypress/e2e/pedido.cy.ts`. Eles usam a API em `http://localhost:5242`, o Vite em `http://localhost:5173` e um banco PostgreSQL **exclusivo para testes**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Configure `ConnectionStrings__DefaultConnection` para apontar ao banco descartável e inicie a API com as fixtures habilitadas:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Testing"
+$env:CypressTestFixtures__Enabled = "false"
+$env:ConnectionStrings__DefaultConnection = "Host=localhost;Port=5432;Database=igb_smartphones_cypress;Username=postgres;Password=<senha>"
+Set-Location ..\backend\IGB.Smartphones.Api
+dotnet ef database update
+$env:CypressTestFixtures__Enabled = "true"
+dotnet run --urls http://localhost:5242
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Em outro terminal, inicie o front-end (`npm run dev`) e execute `npm run cypress:run`. As fixtures de cupom são de uso único; para repetir a suíte, recrie ou resete o banco descartável e aplique as migrations antes de reiniciar a API. Nunca aponte essa configuração para o banco de desenvolvimento ou produção.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- `npm run dev` — inicia o Vite.
+- `npm run build` — verifica tipos e gera o build.
+- `npm run lint` — executa o ESLint.
+- `npm run cypress:run` — executa os cenários Cypress em modo headless.

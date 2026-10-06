@@ -40,7 +40,7 @@ namespace IGB.Smartphones.Api.Migrations
                     b.HasIndex("Nome")
                         .IsUnique();
 
-                    b.ToTable("Bandeira");
+                    b.ToTable("Bandeira", (string)null);
 
                     b.HasData(
                         new
@@ -98,7 +98,7 @@ namespace IGB.Smartphones.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("CartaoCredito");
+                    b.ToTable("CartaoCredito", (string)null);
                 });
 
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Cliente", b =>
@@ -179,6 +179,74 @@ namespace IGB.Smartphones.Api.Migrations
                     b.ToTable("Clientes");
                 });
 
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Cupom", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("FormaDesconto")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Natureza")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("Cupons", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Cupons_Percentual", "\"FormaDesconto\" <> 'Percentual' OR \"Valor\" <= 100");
+
+                            t.HasCheckConstraint("CK_Cupons_Valor", "\"Valor\" > 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Ativo = true,
+                            Codigo = "TECH5",
+                            FormaDesconto = "Percentual",
+                            Natureza = "Promocional",
+                            Valor = 5m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Ativo = true,
+                            Codigo = "BEMVINDO10",
+                            FormaDesconto = "Percentual",
+                            Natureza = "Promocional",
+                            Valor = 10m
+                        });
+                });
+
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Endereco", b =>
                 {
                     b.Property<int>("Id")
@@ -250,6 +318,398 @@ namespace IGB.Smartphones.Api.Migrations
                     b.ToTable("Enderecos");
                 });
 
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Pedido", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EntregaBairro")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EntregaCEP")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("EntregaCidade")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EntregaEstado")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("EntregaLogradouro")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("EntregaNome")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("EntregaNumero")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("EntregaObservacoes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("EntregaPais")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EntregaTipoLogradouro")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("EntregaTipoResidencia")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("ValorDesconto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("ValorFrete")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("Pedidos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Pedidos_Subtotal", "\"Subtotal\" >= 0");
+
+                            t.HasCheckConstraint("CK_Pedidos_Total", "\"Total\" >= 0");
+
+                            t.HasCheckConstraint("CK_Pedidos_ValorDesconto", "\"ValorDesconto\" >= 0");
+
+                            t.HasCheckConstraint("CK_Pedidos_ValorFrete", "\"ValorFrete\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoCupom", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CupomId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ValorAplicado")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CupomId");
+
+                    b.HasIndex("PedidoId", "CupomId")
+                        .IsUnique();
+
+                    b.ToTable("PedidoCupons", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PedidoCupons_ValorAplicado", "\"ValorAplicado\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("NomeProduto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PrecoUnitario")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PedidoId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("PedidoItens", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PedidoItens_PrecoUnitario", "\"PrecoUnitario\" > 0");
+
+                            t.HasCheckConstraint("CK_PedidoItens_Quantidade", "\"Quantidade\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoPagamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bandeira")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("CartaoCreditoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Ultimos4")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartaoCreditoId");
+
+                    b.HasIndex("PedidoId");
+
+                    b.ToTable("PedidoPagamentos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PedidoPagamentos_Valor", "\"Valor\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Produto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Cor")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ImagemUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<decimal>("Preco")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<int>("QuantidadeEstoque")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Produtos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Produtos_Preco", "\"Preco\" > 0");
+
+                            t.HasCheckConstraint("CK_Produtos_QuantidadeEstoque", "\"QuantidadeEstoque\" >= 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Ativo = true,
+                            Cor = "#8a9a9d",
+                            Marca = "Samsung",
+                            Nome = "Galaxy S24",
+                            Preco = 4299.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Ativo = true,
+                            Cor = "#607d8b",
+                            Marca = "Samsung",
+                            Nome = "Galaxy A55",
+                            Preco = 2299.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Ativo = true,
+                            Cor = "#4b5263",
+                            Marca = "Samsung",
+                            Nome = "Galaxy S24 Ultra",
+                            Preco = 6499.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Ativo = true,
+                            Cor = "#b8c9d8",
+                            Marca = "Apple",
+                            Nome = "iPhone 15",
+                            Preco = 4899.00m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Ativo = true,
+                            Cor = "#8c8c88",
+                            Marca = "Apple",
+                            Nome = "iPhone 15 Pro",
+                            Preco = 6499.00m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Ativo = true,
+                            Cor = "#a8b5a5",
+                            Marca = "Apple",
+                            Nome = "iPhone 16",
+                            Preco = 5799.00m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Ativo = true,
+                            Cor = "#66728b",
+                            Marca = "Motorola",
+                            Nome = "Edge 50 Pro",
+                            Preco = 2999.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Ativo = true,
+                            Cor = "#7d8f83",
+                            Marca = "Motorola",
+                            Nome = "Moto G85",
+                            Preco = 1899.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Ativo = true,
+                            Cor = "#9b8798",
+                            Marca = "Motorola",
+                            Nome = "Razr 50",
+                            Preco = 4999.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Ativo = true,
+                            Cor = "#d4b6a6",
+                            Marca = "Xiaomi",
+                            Nome = "Redmi Note 13",
+                            Preco = 1599.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Ativo = true,
+                            Cor = "#727b8f",
+                            Marca = "Xiaomi",
+                            Nome = "Redmi Note 13 Pro",
+                            Preco = 2199.90m,
+                            QuantidadeEstoque = 10
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Ativo = true,
+                            Cor = "#555d68",
+                            Marca = "Xiaomi",
+                            Nome = "Xiaomi 14",
+                            Preco = 4299.90m,
+                            QuantidadeEstoque = 10
+                        });
+                });
+
             modelBuilder.Entity("IGB.Smartphones.Api.Models.CartaoCredito", b =>
                 {
                     b.HasOne("IGB.Smartphones.Api.Models.Bandeira", "Bandeira")
@@ -280,11 +740,88 @@ namespace IGB.Smartphones.Api.Migrations
                     b.Navigation("EnderecoCobranca");
                 });
 
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Cupom", b =>
+                {
+                    b.HasOne("IGB.Smartphones.Api.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Cliente");
+                });
+
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Endereco", b =>
                 {
                     b.HasOne("IGB.Smartphones.Api.Models.Cliente", null)
                         .WithMany("EnderecosEntrega")
                         .HasForeignKey("ClienteId");
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Pedido", b =>
+                {
+                    b.HasOne("IGB.Smartphones.Api.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoCupom", b =>
+                {
+                    b.HasOne("IGB.Smartphones.Api.Models.Cupom", "Cupom")
+                        .WithMany()
+                        .HasForeignKey("CupomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IGB.Smartphones.Api.Models.Pedido", "Pedido")
+                        .WithMany("Cupons")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cupom");
+
+                    b.Navigation("Pedido");
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoItem", b =>
+                {
+                    b.HasOne("IGB.Smartphones.Api.Models.Pedido", "Pedido")
+                        .WithMany("Itens")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IGB.Smartphones.Api.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.PedidoPagamento", b =>
+                {
+                    b.HasOne("IGB.Smartphones.Api.Models.CartaoCredito", "CartaoCredito")
+                        .WithMany()
+                        .HasForeignKey("CartaoCreditoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("IGB.Smartphones.Api.Models.Pedido", "Pedido")
+                        .WithMany("Pagamentos")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CartaoCredito");
+
+                    b.Navigation("Pedido");
                 });
 
             modelBuilder.Entity("IGB.Smartphones.Api.Models.Bandeira", b =>
@@ -297,6 +834,15 @@ namespace IGB.Smartphones.Api.Migrations
                     b.Navigation("Cartoes");
 
                     b.Navigation("EnderecosEntrega");
+                });
+
+            modelBuilder.Entity("IGB.Smartphones.Api.Models.Pedido", b =>
+                {
+                    b.Navigation("Cupons");
+
+                    b.Navigation("Itens");
+
+                    b.Navigation("Pagamentos");
                 });
 #pragma warning restore 612, 618
         }
